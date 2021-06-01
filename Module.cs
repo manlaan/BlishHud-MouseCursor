@@ -55,6 +55,7 @@ namespace MouseCursor
 
         protected override void Initialize()
         {
+            //To Do:
             //change to reading files in a directory so user can add own graphic files easily
             //setup directory and copy default mouse files 
 
