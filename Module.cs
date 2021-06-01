@@ -44,7 +44,6 @@ namespace MouseCursor
 
         protected override void DefineSettings(SettingCollection settings)
         {
-            //need to change this to reading files in a directory so user can add own graphic files easily
             _settingMouseCursorType = settings.DefineSetting("MouseCursorType", MouseFiles.CircleCyan, "Mouse Type", "");
             _settingMouseCursorRadius = settings.DefineSetting("MouseCursorRadius", 50f, "Mouse Size", "");
             _settingMouseCursorOpacity = settings.DefineSetting("MouseCursorOpacity", 100f, "Mouse Opacity", "");
@@ -52,8 +51,8 @@ namespace MouseCursor
 
         protected override void Initialize()
         {
-            //need to setup directory and copy mouse files   -- Timers has this.  
-            //add option to open directory on settings.  
+            //change to reading files in a directory so user can add own graphic files easily
+            //setup directory and copy default mouse files 
 
             _settingMouseCursorRadius.SettingChanged += UpdateMouseSettings;
             _settingMouseCursorOpacity.SettingChanged += UpdateMouseSettings;
@@ -69,8 +68,6 @@ namespace MouseCursor
 
         protected override void OnModuleLoaded(EventArgs e)
         {
-
-            // Base handler must be called
             base.OnModuleLoaded(e);
         }
 
