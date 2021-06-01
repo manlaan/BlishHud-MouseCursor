@@ -44,6 +44,7 @@ namespace MouseCursor
 
         protected override void DefineSettings(SettingCollection settings)
         {
+            //need to change this to reading files in a directory so user can add own graphic files easily
             _settingMouseCursorType = settings.DefineSetting("MouseCursorType", MouseFiles.CircleCyan, "Mouse Type", "");
             _settingMouseCursorRadius = settings.DefineSetting("MouseCursorRadius", 50f, "Mouse Size", "");
             _settingMouseCursorOpacity = settings.DefineSetting("MouseCursorOpacity", 100f, "Mouse Opacity", "");
@@ -51,6 +52,9 @@ namespace MouseCursor
 
         protected override void Initialize()
         {
+            //need to setup directory and copy mouse files   -- Timers has this.  
+            //add option to open directory on settings.  
+
             _settingMouseCursorRadius.SettingChanged += UpdateMouseSettings;
             _settingMouseCursorOpacity.SettingChanged += UpdateMouseSettings;
 
@@ -72,6 +76,7 @@ namespace MouseCursor
 
         protected override void Update(GameTime gameTime)
         {
+            //better way to handle when settings select box is modified?
             if (_mouseCursorFile != getMouseTexture())
                 UpdateMouseSettings();
 

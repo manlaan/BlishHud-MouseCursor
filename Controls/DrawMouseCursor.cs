@@ -13,7 +13,7 @@ namespace MouseCursor
         {
             this.Location = new Point(0, 0);
             this.Visible = true;
-            this.ZIndex = 0;
+            this.ZIndex = 0;   //Would like to set this above Blish, but CaptureType.ForceNone requires drawing this below Blish or all clicks go through blish, including menus.  Conditional CapturesInput?
             this.Padding = Thickness.Zero;
         }
 

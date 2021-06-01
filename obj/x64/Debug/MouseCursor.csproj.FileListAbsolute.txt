@@ -1,8 +1,7 @@
-C:\Users\manla\source\repos\MouseCursor\obj\x64\Debug\MouseCursor.csprojAssemblyReference.cache
-C:\Users\manla\source\repos\MouseCursor\obj\x64\Debug\MouseCursor.csproj.CoreCompileInputs.cache
 C:\Users\manla\source\repos\MouseCursor\bin\x64\Debug\manifest.json
 C:\Users\manla\source\repos\MouseCursor\bin\x64\Debug\MouseCursor.dll.config
 C:\Users\manla\source\repos\MouseCursor\bin\x64\Debug\MouseCursor.dll
 C:\Users\manla\source\repos\MouseCursor\bin\x64\Debug\MouseCursor.pdb
+C:\Users\manla\source\repos\MouseCursor\obj\x64\Debug\MouseCursor.csproj.CoreCompileInputs.cache
 C:\Users\manla\source\repos\MouseCursor\obj\x64\Debug\MouseCursor.dll
 C:\Users\manla\source\repos\MouseCursor\obj\x64\Debug\MouseCursor.pdb
