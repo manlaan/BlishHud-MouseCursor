@@ -47,6 +47,10 @@ namespace MouseCursor
             _settingMouseCursorType = settings.DefineSetting("MouseCursorType", MouseFiles.CircleCyan, "Mouse Type", "");
             _settingMouseCursorRadius = settings.DefineSetting("MouseCursorRadius", 50f, "Mouse Size", "");
             _settingMouseCursorOpacity = settings.DefineSetting("MouseCursorOpacity", 100f, "Mouse Opacity", "");
+
+            //not sure why I cant use SetRange, so values adjusted in UpdateMouseSettings()
+            //_settingMouseCursorRadius.SetRange(20f, 200f);
+            //_settingMouseCursorOpacity.SetRange(0f, 1f);
         }
 
         protected override void Initialize()
