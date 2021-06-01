@@ -25,12 +25,12 @@ namespace MouseCursor
 
         public enum MouseFiles
         {
-            CircleCyan = 0,
-            CircleBlue = 1,
-            CircleRed = 2,
-            CircleGreen = 3,
-            CircleMagenta = 4,
-            CircleYellow = 5,
+            CircleCyan,
+            CircleBlue,
+            CircleRed,
+            CircleGreen,
+            CircleMagenta,
+            CircleYellow,
         }
 
         private SettingEntry<float> _settingMouseCursorRadius;
@@ -74,7 +74,7 @@ namespace MouseCursor
         protected override void Update(GameTime gameTime)
         {
             //better way to handle when settings select box is modified?
-            if (_mouseCursorFile != getMouseTexture())
+            if (_mouseCursorFile != getMouseFileName())
                 UpdateMouseSettings();
 
             int x = (int)(GameService.Input.Mouse.Position.X - ((_settingMouseCursorRadius.Value + 20) / 2));
@@ -93,12 +93,12 @@ namespace MouseCursor
 
         private void UpdateMouseSettings(object sender = null, ValueChangedEventArgs<float> e = null)
         {
-            _mouseCursorFile = getMouseTexture();
+            _mouseCursorFile = getMouseFileName();
             _mouseImg.Size = new Point((int)(_settingMouseCursorRadius.Value + 20), (int)(_settingMouseCursorRadius.Value + 20));
             _mouseImg.Opacity = _settingMouseCursorOpacity.Value / 100;
             _mouseImg.Texture = ContentsManager.GetTexture(_mouseCursorFile);
         }
-        private string getMouseTexture()
+        private string getMouseFileName()
         {
             string filename;
             switch (_settingMouseCursorType.Value)
