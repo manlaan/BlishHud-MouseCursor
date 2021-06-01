@@ -1,0 +1,1363 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AsyncClipboardService</name>
+    </assembly>
+    <members>
+        <member name="T:AsyncWindowsClipboard.ClipboardDataFormat">
+            <summary>
+                An enum representing clipboard data formats.
+            </summary>
+            <remarks>
+                This enum is intended for public usage. Check <see cref="T:AsyncWindowsClipboard.Clipboard.ClipboardDataType" /> for internal wrapper of windows
+                clipboard.
+            </remarks>
+        </member>
+        <member name="F:AsyncWindowsClipboard.ClipboardDataFormat.Text">
+            <summary>
+                Represents text clipboard format.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.ClipboardDataFormat.FileDropList">
+            <summary>
+                Represents file drop list clipboard format.
+            </summary>
+        </member>
+        <member name="T:AsyncWindowsClipboard.Clipboard.ClipboardDataType">
+            <summary>
+                Internal enum that wraps native clipboard data types
+            </summary>
+            <remarks>
+                The clipboard formats defined by the system are called standard clipboard formats.
+                See more at : https://kutt.it/EGdSiY
+            </remarks>
+            <seealso cref="T:AsyncWindowsClipboard.Clipboard.Native.NativeMethods" />
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.ClipboardDataType.UnicodeLittleEndianText">
+            <summary>
+                The unicode little endian text.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.ClipboardDataType.Bitmap">
+            <summary>
+                Bitmap image file.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.ClipboardDataType.Dif">
+            <summary>
+                Software Arts' Data Interchange Format.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.ClipboardDataType.Wave">
+            <summary>
+                Represents audio data in one of the standard wave formats, such as 11 kHz or 22 kHz PCM.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.ClipboardDataType.FileDropList">
+            <summary>
+                Collection of file names.
+            </summary>
+        </member>
+        <member name="T:AsyncWindowsClipboard.Clipboard.ClipboardOperationResultCode">
+            <summary>
+                Result of the Clipboard operation
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.ClipboardOperationResultCode.Success">
+            <summary>
+                Clipboard operations was successful
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.ClipboardOperationResultCode.ErrorOpenClipboard">
+            <summary>
+                Clipboard operation failed due to an error during opening clipboard.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.ClipboardOperationResultCode.ErrorCloseClipboard">
+            <summary>
+                Clipboard operation failed due to an error during closing clipboard.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.ClipboardOperationResultCode.ErrorClearClipboard">
+            <summary>
+                Clipboard operation failed due to an error during clearing clipboard.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.ClipboardOperationResultCode.ErrorGlobalAlloc">
+            <summary>
+                Clipboard operation when allocating native bytes for the clipboard.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.ClipboardOperationResultCode.ErrorGlobalLock">
+            <summary>
+                Clipboard operation when communicating native bytes with the clipboard.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.ClipboardOperationResultCode.ErrorSetClipboardData">
+            <summary>
+                Clipboard operation when communicating wit the clipboard.
+            </summary>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.Connection.ClipboardOpenerWithTimeout.Open(AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession,System.TimeSpan,System.Int32)">
+            <exception cref="T:System.ArgumentNullException"><paramref name="session" /> is <see langword="null" /></exception>
+            <exception cref="T:System.ArgumentOutOfRangeException">
+                <p><paramref name="timeout" /> is too short. It must be higher than 30.</p>
+                <p><paramref name="delayMilliseconds" /> is too short. It must be higher than 15.</p>
+            </exception>
+            <exception cref="T:System.ArgumentException">
+                <paramref name="timeout" /> must is lower than
+                <paramref name="delayMilliseconds" />
+            </exception>
+        </member>
+        <member name="T:AsyncWindowsClipboard.Clipboard.Connection.TimeoutHelper">
+            <summary>
+                Utility class to help with retry and timeout logic.
+            </summary>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.Connection.TimeoutHelper.RetryUntilSuccessOrTimeout(System.Func{System.Boolean},System.TimeSpan,System.Int32)">
+            <summary>
+                Runs the given <see cref="T:System.Func`1" /> until it returns true.
+                It keeps track of time and only runs it until given <see cref="T:System.TimeSpan" /> is reached.
+            </summary>
+            <param name="func">Task to run.</param>
+            <param name="timeout">Time out for the trying cycle.</param>
+            <param name="delayInMs">Delay to wait after each execution of the function.</param>
+            <returns>
+                <c>TRUE</c> if the <paramref name="func" /> returns true before <paramref name="timeout" /> otherwise;<c>FALSE</c>
+            </returns>
+            <exception cref="T:System.ArgumentOutOfRangeException">
+                <p><paramref name="timeout" /> is too short. It must be higher than 30.</p>
+                <p><paramref name="delayInMs" /> is too short. It must be higher than 15.</p>
+            </exception>
+            <exception cref="T:System.ArgumentException">
+                <paramref name="timeout" /> must is lower than <paramref name="delayInMs" />
+            </exception>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.Connection.TimeoutHelper.ValidateParameters(System.TimeSpan,System.Int32)">
+            <exception cref="T:System.ArgumentOutOfRangeException">
+                <p><paramref name="timeout" /> is too short. It must be higher than 30.</p>
+                <p><paramref name="delayInMs" /> is too short. It must be higher than 15.</p>
+            </exception>
+            <exception cref="T:System.ArgumentException">
+                <paramref name="timeout" /> must is lower than <paramref name="delayInMs" />
+            </exception>
+        </member>
+        <member name="T:AsyncWindowsClipboard.Clipboard.Exceptions.ClipboardTimeoutException">
+            <summary>
+                This type of exception is thrown if the operation fails until timeout is reached. It's depended on a single or
+                multiple <see cref="T:AsyncWindowsClipboard.Clipboard.Exceptions.ClipboardWindowsApiException" />s.
+            </summary>
+            <seealso cref="T:AsyncWindowsClipboard.Clipboard.Exceptions.ClipboardWindowsApiException" />
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.Exceptions.ClipboardTimeoutException.#ctor(System.String,AsyncWindowsClipboard.Clipboard.Exceptions.ClipboardWindowsApiException)">
+            <exception cref="T:System.ArgumentNullException"><paramref name="innerException" /> is null.</exception>
+            <exception cref="T:System.ArgumentException"><paramref name="message" /> cannot be null or empty.</exception>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.Exceptions.ClipboardTimeoutException.#ctor(System.String,System.Collections.Generic.IEnumerable{AsyncWindowsClipboard.Clipboard.Exceptions.ClipboardWindowsApiException})">
+            <exception cref="T:System.ArgumentNullException"><paramref name="innerExceptions" /> is null.</exception>
+            <exception cref="T:System.ArgumentException"><paramref name="message" /> cannot be null or empty.</exception>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.Exceptions.ClipboardTimeoutException.#ctor(System.String)">
+            <exception cref="T:System.ArgumentException"><paramref name="message" /> cannot be null or empty.</exception>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.Exceptions.ClipboardTimeoutException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo"/> that holds the serialized object data about the exception being thrown.</param>
+            <param name="context">The <see cref="T:System.Runtime.Serialization.StreamingContext"/> that contains contextual information about the source or destination.</param>
+            <exception cref="T:System.ArgumentNullException">The <paramref name="info"/> parameter is <c>null</c>.</exception>
+            <exception cref="T:System.Runtime.Serialization.SerializationException">The class name is <c>null</c> or <see cref="P:System.Exception.HResult"/> is zero (0).</exception>
+        </member>
+        <member name="T:AsyncWindowsClipboard.Clipboard.Exceptions.ClipboardWindowsApiException">
+            <summary>
+                This type of exception is thrown if there has been any errors during communication with windows api.
+            </summary>
+            <seealso cref="T:System.ComponentModel.Win32Exception" />
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.Exceptions.ClipboardWindowsApiException.#ctor(System.UInt32)">
+            <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="error" /> is not unsigned</exception>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.Exceptions.ClipboardWindowsApiException.#ctor(System.String)">
+            <exception cref="T:System.ArgumentException"><paramref name="message" /> cannot be null or empty.</exception>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.Exceptions.ClipboardWindowsApiException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo"/> that holds the serialized object data about the exception being thrown.</param>
+            <param name="context">The <see cref="T:System.Runtime.Serialization.StreamingContext"/> that contains contextual information about the source or destination.</param>
+            <exception cref="T:System.ArgumentNullException">The <paramref name="info"/> parameter is <c>null</c>.</exception>
+            <exception cref="T:System.Runtime.Serialization.SerializationException">The class name is <c>null</c> or <see cref="P:System.Exception.HResult"/> is zero (0).</exception>
+        </member>
+        <member name="T:AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession">
+            <summary>
+                Reveals bunch of methods for synchronous communication with the windows native functions.
+            </summary>
+        </member>
+        <member name="P:AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession.IsOpen">
+            <summary>
+                A <see cref="T:System.Boolean" /> representing whether the instance has an open communication with the windows clipboard.
+            </summary>
+            <remarks>
+                <p>Use <see cref="M:AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession.Open" /> method to open the communication</p>
+                <p>Use <see cref="M:AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession.Close" /> method to close the communication</p>
+            </remarks>
+            <seealso cref="M:AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession.Open" />
+            <seealso cref="M:AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession.Close" />
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession.Open">
+            <summary>
+                Opens the clipboard for examination.
+            </summary>
+            <returns>If the operation method is successful.</returns>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession.Close">
+            <summary>
+                Closes the the clipboard.
+            </summary>
+            <returns>If the operation method is successful.</returns>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession.Clear">
+            <summary>
+                Clears the clipboard.
+            </summary>
+            <returns><c>true</c> if the function succeeds, <c>false</c> the function fails.</returns>
+            <seealso cref="M:AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession.Open" />
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession.IsContentTypeOf(AsyncWindowsClipboard.Clipboard.ClipboardDataType)">
+            <summary>
+                Determines whether the content of the clipboard is unicode text.
+            </summary>
+            <returns><c>true</c> if content of the clipboard is unicode text, otherwise; <c>false</c>.</returns>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession.SetData(AsyncWindowsClipboard.Clipboard.ClipboardDataType,System.Byte[])">
+            <summary>
+                Places data on the clipboard in a specified clipboard format.
+            </summary>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession.GetData(AsyncWindowsClipboard.Clipboard.ClipboardDataType)">
+            <summary>
+                Retrieves data from the clipboard in a specified format.
+            </summary>
+        </member>
+        <member name="T:AsyncWindowsClipboard.Clipboard.Native.Dlls">
+            <summary>
+                A class holding .dll file names.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.Native.Dlls.User32">
+            <summary>
+                The user32 dll.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.Native.Dlls.Kernel32">
+            <summary>
+                The kernel32 dll.
+            </summary>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.GlobalSize(System.IntPtr)">
+            <summary>
+                Retrieves the current size of the specified global memory object, in bytes.
+            </summary>
+            <param name="hMem">
+                A handle to the global memory object. This handle is returned by either the
+                <see cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.GlobalAlloc(System.UInt32,System.UIntPtr)" /> or <c>GlobalReAlloc</c> function.
+            </param>
+            <returns>
+                <p>If the function succeeds, the return value is the size of the specified global memory object, in bytes.</p>
+                <p>
+                    If the specified handle is not valid or if the object has been discarded, the return value is zero. To get
+                    extended error information, call <see cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.GetLastError" />.
+                </p>
+            </returns>
+            <remarks>
+                <p>The size of a memory block may be larger than the size requested when the memory was allocated.</p>
+            </remarks>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.GlobalLock(System.IntPtr)">
+            <summary>
+                Locks a global memory object and returns a pointer to the first byte of the object's memory block.
+            </summary>
+            <param name="hMem">
+                A handle to the global memory object. This handle is returned by either the
+                <see cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.GlobalAlloc(System.UInt32,System.UIntPtr)" /> or <c>GlobalReAlloc</c> function.
+            </param>
+            <returns>
+                <p>If the function succeeds, the return value is a pointer to the first byte of the memory block.</p>
+                <p>
+                    If the function fails, the return value is <see langword="null" />. To get extended error information,  call
+                    <see cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.GetLastError" />.
+                </p>
+            </returns>
+            <remarks>
+                <p>Discarded objects always have a lock count of zero.</p>
+                <p>
+                    If the specified memory block has been discarded or if the memory block has a zero-byte size, this function
+                    returns <see langword="null" />.
+                </p>
+                <p>
+                    Memory objects allocated with <c>GMEM_FIXED</c> always have a lock count of zero. For these objects, the value
+                    of the returned pointer is equal to the value of the specified handle.
+                </p>
+                <p>
+                    The internal data structures for each memory object include a lock count that is initially zero. For movable
+                    memory objects, <see cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.GlobalLock(System.IntPtr)" /> increments the count by one, and the <see cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.GlobalUnlock(System.IntPtr)" />
+                    function decrements the count by
+                    one. Each successful call that a process makes to <see cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.GlobalLock(System.IntPtr)" /> for an object must be matched by a
+                    corresponding
+                    call to <see cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.GlobalUnlock(System.IntPtr)" />. Locked memory will not be moved or discarded, unless the memory object is
+                    reallocated by
+                    using the <c>GlobalReAlloc</c> function. The memory block of a locked memory object remains locked until its
+                    lock
+                    count is decremented to zero, at which time it can be moved or discarded.
+                </p>
+            </remarks>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.GetClipboardData(System.UInt32)">
+            <summary>
+                Retrieves data from the clipboard in a specified format. The clipboard must have been opened previously.
+            </summary>
+            <param name="uFormat">
+                A clipboard format. For a description of the standard clipboard formats, see
+                https://msdn.microsoft.com/en-us/library/windows/desktop/ms649013(v=vs.85).aspx#_win32_Standard_Clipboard_Formats .
+            </param>
+            <returns>
+                <p>If the function succeeds, the return value is the handle to a clipboard object in the specified format.</p>
+                <p>
+                    If the function fails, the return value is <see langword="null" />. To get extended error information, call
+                    <see cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.GetLastError" />.
+                </p>
+            </returns>
+            <remarks>
+                Caution : Clipboard data is not trusted. Parse the data carefully before using it in your application.
+            </remarks>
+            <seealso cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CloseClipboard" />
+            <seealso cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.EmptyClipboard" />
+            <seealso cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.SetClipboardData(System.UInt32,System.IntPtr)" />
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.OpenClipboard(System.IntPtr)">
+            <summary>
+                Opens the clipboard for examination and prevents other applications from modifying the clipboard content
+            </summary>
+            <param name="hWndNewOwner">
+                A handle to the window to be associated with the open clipboard.
+                If this parameter is <see langword="null" />, the open clipboard is associated with the current task.
+            </param>
+            <returns>
+                <c>true</c> if the function succeeds, <c>false</c> the function fails.
+            </returns>
+            <remarks>
+                <p><see cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.OpenClipboard(System.IntPtr)" /> fails if another window has the clipboard open.</p>
+                <p>
+                    An application should call the <see cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CloseClipboard" /> function after every successful call to
+                    <see cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.OpenClipboard(System.IntPtr)" />.
+                </p>
+                <p>
+                    The window identified by the <paramref name="hWndNewOwner" /> parameter does not become the clipboard owner
+                    unless the <seealso cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.EmptyClipboard" />
+                    function is called.
+                </p>
+                <p>
+                    If an application calls <seealso cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.OpenClipboard(System.IntPtr)" /> with hwnd set to <see langword="null" />,
+                    <seealso cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.EmptyClipboard" /> sets the clipboard
+                    owner to <see langword="null" />; this
+                    causes <seealso cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.SetClipboardData(System.UInt32,System.IntPtr)" /> to fail.
+                </p>
+            </remarks>
+            <seealso cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CloseClipboard" />
+            <seealso cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.EmptyClipboard" />
+            <seealso cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.SetClipboardData(System.UInt32,System.IntPtr)" />
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CloseClipboard">
+            <summary>
+                Closes the clipboard.
+            </summary>
+            <returns>
+                <p><c>true</c> if the function succeeds, <c>false</c> the function fails.</p>
+                <p>If the function fail. To get extended error information, call <see cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.GetLastError" />.</p>
+            </returns>
+            <remarks>
+                <p>
+                    When the window has finished examining or changing the clipboard, close the clipboard by calling
+                    <see cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CloseClipboard" />. This enables other windows to access the clipboard.
+                </p>
+                <p>Do not place an object on the clipboard after calling <see cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CloseClipboard" />.</p>
+            </remarks>
+            <seealso cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.OpenClipboard(System.IntPtr)" />
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.SetClipboardData(System.UInt32,System.IntPtr)">
+            <summary>
+                <p>Places data on the clipboard in a specified clipboard format.</p>
+                <p>
+                    The window must be the current clipboard owner, and the application must have called the
+                    <see cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.OpenClipboard(System.IntPtr)" /> function.
+                </p>
+                <p>Read more at : https://msdn.microsoft.com/en-us/library/windows/desktop/ms649051(v=vs.85).aspx </p>
+            </summary>
+            <param name="uFormat">
+                The clipboard format. This parameter can be a registered format or any of the standard clipboard formats.
+                For more information
+                <p>https://msdn.microsoft.com/en-us/library/windows/desktop/ff729168(v=vs.85).aspx</p>
+                <p>https://msdn.microsoft.com/en-us/library/windows/desktop/ms649013(v=vs.85).aspx#_win32_Registered_Clipboard_Formats</p>
+            </param>
+            <param name="hMem">
+                <p>
+                    A handle to the data in the specified format. This parameter can be <see langword="null" />, indicating that
+                    the window provides
+                    data in the specified clipboard format (renders the format) upon request. If a window delays rendering, it must
+                    process the <c>WM_RENDERFORMAT</c> and WM_RENDERALLFORMATS messages.
+                </p>
+                <p>
+                    If <see cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.SetClipboardData(System.UInt32,System.IntPtr)" /> succeeds, the system owns the object identified by the <c>hMem</c>
+                    parameter. The
+                    application may
+                    not write to or free the data once ownership has been transferred to the system, but it can lock and read from
+                    the data until the <see cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CloseClipboard" /> function is called. (The memory must be unlocked before the
+                    Clipboard is
+                    closed.) If the hMem parameter identifies a memory object, the object must have been allocated using the
+                    function with the <c>GMEM_MOVEABLE</c> flag.
+                </p>
+            </param>
+            <returns>
+                <p>If the function succeeds, the return value is the handle to the data.</p>
+                <p>
+                    If the function fails, the return value is <see langword="null" />. To get extended error information, call
+                    <see cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.GetLastError" />.
+                </p>
+            </returns>
+            <remarks>
+                <p>
+                    If an application calls <exception cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.OpenClipboard(System.IntPtr)"></exception> with hwnd set to <see langword="null" />,
+                    <seealso cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.EmptyClipboard" /> sets the clipboard owner to NULL; this causes SetClipboardData to fail.
+                </p>
+            </remarks>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.EmptyClipboard">
+            <summary>
+                Empties the clipboard and frees handles to data in the clipboard. The function then assigns ownership of the
+                clipboard to the window that currently has the clipboard open.
+            </summary>
+            <returns>
+                <p><c>true</c> if the function succeeds, <c>false</c> the function fails.</p>
+                <p>If the function fail. To get extended error information, call <see cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.GetLastError" />.</p>
+            </returns>
+            <remarks>
+                Before calling <seealso cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.EmptyClipboard" />, an application must open the clipboard by using the
+                <seealso cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.OpenClipboard(System.IntPtr)" /> function. If
+                the application specifies a <see langword="null" /> window handle when opening the clipboard,
+                <seealso cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.EmptyClipboard" /> succeeds but sets the
+                clipboard owner to <see langword="null" />. Note that this causes <seealso cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.SetClipboardData(System.UInt32,System.IntPtr)" /> to fail.
+            </remarks>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.IsClipboardFormatAvailable(System.UInt32)">
+            <summary>
+                Determines whether the clipboard contains data in the specified format.
+            </summary>
+            <param name="format">
+                <p>A standard or registered clipboard format. For a description of the standard clipboard formats</p>
+                <p>Read more : https://msdn.microsoft.com/en-us/library/windows/desktop/ff729168(v=vs.85).aspx </p>
+            </param>
+            <returns><c>true</c> if the clipboard format is available; otherwise, <c>false</c>.</returns>
+            <remarks>
+                Typically, an application that recognizes only one clipboard format would call this function when processing
+                the <c>WM_INITMENU</c> or <c>WM_INITMENUPOPUP</c> message. The application would then enable or disable the Paste
+                menu item,
+                depending on the return value. Applications that recognize more than one clipboard format should use the
+                <c>GetPriorityClipboardFormat</c> function for this purpose.
+            </remarks>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.GetLastError">
+            <summary>
+                Retrieves the calling thread's last-error code value.
+                The last-error code is maintained on a per-thread basis. Multiple threads do not overwrite each other's last-error
+                code.
+            </summary>
+            <returns>
+                <p>The return value is the calling thread's last-error code.</p>
+                <p>
+                    The Return Value section of the documentation for each function that sets the last-error code notes the
+                    conditions under which the function sets the last-error code. Most functions that set the thread's last-error
+                    code set it when they fail. However, some functions also set the last-error code when they succeed. If the
+                    function is not documented to set the last-error code, the value returned by this function is simply the most
+                    recent last-error code to have been set; some functions set the last-error code to 0 on success and others do
+                    not.
+                </p>
+            </returns>
+            <remarks>
+                <p>
+                    Functions executed by the calling thread set this value by calling the <c>SetLastError</c> function. You should
+                    call
+                    the <see cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.GetLastError" /> function immediately when a function's return value indicates that such a call
+                    will return
+                    useful data. That is because some functions call <c>SetLastError</c> with a zero when they succeed, wiping out
+                    the
+                    error code set by the most recently failed function.
+                </p>
+                <p>To obtain an error string for system error codes, use the FormatMessage function.</p>
+                <p>
+                    The error codes returned by a function are not part of the Windows API specification and can vary by operating
+                    system or device driver. For this reason, we cannot provide the complete list of error codes that can be
+                    returned by each function. There are also many functions whose documentation does not include even a partial
+                    list of error codes that can be returned.
+                </p>
+                <p>
+                    Error codes are 32-bit values (bit 31 is the most significant bit). Bit 29 is reserved for application-defined
+                    error codes; no system error code has this bit set. If you are defining an error code for your application, set
+                    this bit to one. That indicates that the error code has been defined by an application, and ensures that your
+                    error code does not conflict with any error codes defined by the system.
+                </p>
+            </remarks>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.GHND">
+            <summary>
+                Combines GMEM_MOVEABLE and GMEM_ZEROINIT.
+                GMEM_MOVEABLE : Allocates movable memory. Memory blocks are never moved in physical memory, but they can be moved
+                within the default heap.
+                The return value is a handle to the memory object. To translate the handle into a pointer, use the GlobalLock
+                function.
+                This value cannot be combined with GMEM_FIXED.
+                GMEM_ZEROINIT : Initializes memory contents to zero.
+            </summary>
+            <remarks>https://msdn.microsoft.com/en-us/library/windows/desktop/aa366574%28v=vs.85%29.aspx</remarks>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_BITMAP">
+            <summary>
+                A handle to a bitmap (<c>HBITMAP</c>).
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_DIB">
+            <summary>
+                A memory object containing a <c>BITMAPINFO</c> structure followed by the bitmap bits.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_DIBV5">
+            <summary>
+                A memory object containing a <c>BITMAPV5HEADER</c> structure followed by the bitmap color space information and the
+                bitmap bits.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_DIF">
+            <summary>
+                Software Arts' Data Interchange Format.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_DSPBITMAP">
+            <summary>
+                Bitmap display format associated with a private format.
+                The <c>hMem</c> parameter must be a handle to data that can be displayed in bitmap format in lieu of the privately
+                formatted data.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_DSPENHMETAFILE">
+            <summary>
+                Enhanced metafile display format associated with a private format.
+                The <c>hMem</c> parameter must be a handle to data that can be displayed in enhanced metafile format in lieu of the
+                privately formatted data.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_DSPMETAFILEPICT">
+            <summary>
+                Metafile-picture display format associated with a private format. The <c>hMem</c> parameter must be a handle to
+                data that can be displayed in metafile-picture format in lieu of the privately formatted data.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_DSPTEXT">
+            <summary>
+                Text display format associated with a private format. The <c>hMem</c> parameter must be a handle to data that can
+                be displayed in text format in lieu of the privately formatted data.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_ENHMETAFILE">
+            <summary>
+                A handle to an enhanced metafile (<c>HENHMETAFILE</c>).
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_GDIOBJFIRST">
+            <summary>
+                <p>
+                    Start of a range of integer values for application-defined GDI object clipboard formats. The end of the range
+                    is
+                    <see cref="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_GDIOBJLAST" />.
+                </p>
+                <p>
+                    Handles associated with clipboard formats in this range are not automatically deleted using the
+                    <see cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.GlobalFree(System.IntPtr)" />
+                    function when the clipboard is emptied. Also, when using values in this range, the <c>hMem</c> parameter is not
+                    a
+                    handle to a GDI object, but is a handle allocated by the <see cref="M:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.GlobalAlloc(System.UInt32,System.UIntPtr)" /> function with the
+                    <c>GMEM_MOVEABLE</c> flag.
+                </p>
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_GDIOBJLAST">
+            <summary>
+                See <see cref="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_GDIOBJFIRST" />.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_HDROP">
+            <summary>
+                A handle to type <c>HDROP</c> that identifies a list of files.
+                An application can retrieve information about the files by passing the handle to the <c>DragQueryFile</c> function.
+                <remarks>
+                    The file name array consists of a series of strings, each containing one file's fully qualified path, including
+                    the terminating NULL character. An additional null character is appended to the final string to terminate the
+                    array. For example, if the files c:\temp1.txt and c:\temp2.txt are being transferred, the character array looks
+                    like this:
+                    <c>
+                        c:\temp1.txt'\0'c:\temp2.txt'\0''\0'
+                    </c>
+                </remarks>
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_LOCALE">
+            <summary>
+                <p>
+                    The data is a handle to the locale identifier associated with text in the clipboard. When you close the
+                    clipboard, if it contains <see cref="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_TEXT" /> data but no <see cref="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_LOCALE" /> data, the system
+                    automatically sets the <see cref="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_LOCALE" /> format to the current input language. You can use the
+                    <see cref="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_LOCALE" /> format to associate a different locale with the clipboard text.
+                </p>
+                <p>
+                    An application that pastes text from the clipboard can retrieve this format to determine which character set
+                    was used to generate the text.
+                </p>
+                <p>
+                    Note that the clipboard does not support plain text in multiple character sets. To achieve this, use a
+                    formatted text data type such as RTF instead.
+                </p>
+                <p>
+                    The system uses the code page associated with <see cref="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_LOCALE" /> to implicitly convert from
+                    <see cref="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_TEXT" /> to <see cref="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_UNICODETEXT" />. Therefore, the correct code page table is used
+                    for the conversion.
+                </p>
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_METAFILEPICT">
+            <summary>
+                Handle to a metafile picture format as defined by the <c>METAFILEPICT</c> structure. When passing a
+                <see cref="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_METAFILEPICT" />  handle by means of DDE, the application responsible for deleting <c>hMem</c> should
+                also free the metafile referred to by the <see cref="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_METAFILEPICT" /> handle.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_OEMTEXT">
+            <summary>
+                Text format containing characters in the OEM character set. Each line ends with a carriage return/linefeed (CR-LF)
+                combination. A null character signals the end of the data.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_OWNERDISPLAY">
+            <summary>
+                Owner-display format. The clipboard owner must display and update the clipboard viewer window, and receive the
+                <c>WM_ASKCBFORMATNAME</c>, <c>WM_HSCROLLCLIPBOARD</c>, <c>WM_PAINTCLIPBOARD</c>, <c>WM_SIZECLIPBOARD</c>, and
+                <c>WM_VSCROLLCLIPBOARD</c> messages. The <c>hMem</c> parameter must be <see langword="null" />.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_PALETTE">
+            <summary>
+                <p>
+                    Handle to a color palette. Whenever an application places data in the clipboard that depends on or assumes a
+                    color palette, it should place the palette on the clipboard as well.
+                </p>
+                <p>
+                    If the clipboard contains data in the <see cref="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_PALETTE" /> (logical color palette) format, the application
+                    should use the <c>SelectPalette</c> and <c>RealizePalette</c> functions to realize (compare) any other data in
+                    the clipboard against that logical palette.
+                </p>
+                <p>
+                    When displaying clipboard data, the clipboard always uses as its current palette any object on the clipboard
+                    that is in the <see cref="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_PALETTE" /> format.
+                </p>
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_PENDATA">
+            <summary>
+                Data for the pen extensions to the Microsoft Windows for Pen Computing.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_PRIVATEFIRST">
+            <summary>
+                Start of a range of integer values for private clipboard formats. The range ends with <see cref="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_PRIVATELAST" />
+                . Handles associated with private clipboard formats are not freed automatically; the clipboard owner must free such
+                handles, typically in response to the <c>WM_DESTROYCLIPBOARD</c> message.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_PRIVATELAST">
+            <summary>
+                See <see cref="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_PRIVATEFIRST" />.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_RIFF">
+            <summary>
+                Represents audio data more complex than can be represented in a <see cref="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_WAVE" /> standard wave format.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_SYLK">
+            <summary>
+                Microsoft Symbolic Link (SYLK) format.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_TEXT">
+            <summary>
+                Text format. Each line ends with a carriage return/linefeed (CR-LF) combination. A null character signals the end
+                of the data. Use this format for ANSI text.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_TIFF">
+            <summary>
+                Tagged-image file format.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_UNICODETEXT">
+            <summary>
+                Unicode text format. Each line ends with a carriage return/linefeed (CR-LF) combination. A null character signals
+                the end of the data.
+            </summary>
+        </member>
+        <member name="F:AsyncWindowsClipboard.Clipboard.Native.NativeMethods.CF_WAVE">
+            <summary>
+                Represents audio data in one of the standard wave formats, such as 11 kHz or 22 kHz PCM.
+            </summary>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.Result.ClipboardOperationResult.#ctor(AsyncWindowsClipboard.Clipboard.ClipboardOperationResultCode,System.String,System.Collections.Generic.IEnumerable{System.UInt32})">
+            <exception cref="T:System.ArgumentNullException"><paramref name="errorCodes" /> is <see langword="null" /></exception>
+        </member>
+        <member name="T:AsyncWindowsClipboard.Clipboard.Text.ITextService">
+            <summary>
+                Defines an interface to convert between a <see cref="T:System.Byte" /> array and <see cref="T:System.String" /> with an constant
+                encoding.
+            </summary>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.Text.ITextService.GetString(System.Byte[])">
+            <summary>
+                Decodes a sequence of bytes into a string.
+            </summary>
+            <param name="bytes">The byte array containing the sequence of bytes to decode.</param>
+            <returns>A string that contains the results of decoding the specified sequence of bytes.</returns>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.Text.ITextService.GetBytes(System.String)">
+            <summary>
+                Encodes all the characters in the specified string into a sequence of bytes.
+            </summary>
+            <param name="text">The string containing the characters to encode.</param>
+            <returns>A byte array containing the results of encoding the specified set of characters.</returns>
+        </member>
+        <member name="T:AsyncWindowsClipboard.Clipboard.Text.UnicodeTextService">
+            <summary>
+                <see cref="T:AsyncWindowsClipboard.Clipboard.Text.UnicodeTextService" /> is a wrapper around <see cref="T:System.Text.Encoding" /> using
+                <seealso cref="P:System.Text.Encoding.Unicode" /> as encoding object.
+            </summary>
+            <seealso cref="T:AsyncWindowsClipboard.Clipboard.Text.ITextService" />
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.Text.UnicodeTextService.GetString(System.Byte[])">
+            <inheritdoc />
+            <exception cref="T:System.ArgumentNullException"><paramref name="bytes" /> is <see langword="null" />.</exception>
+            <exception cref="T:System.ArgumentException">The byte array contains invalid encoding code points.</exception>
+            <exception cref="T:System.Text.DecoderFallbackException">
+                A fallback occurred (see Character Encoding in .NET for complete explanation)
+                -and-
+                <see cref="P:System.Text.Encoding.DecoderFallback" /> is set to
+                <see cref="T:System.Text.DecoderExceptionFallback" />.
+            </exception>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.Text.UnicodeTextService.GetBytes(System.String)">
+            <inheritdoc />
+            <exception cref="T:System.ArgumentException"><paramref name="text" /> is <see langword="null" /> or empty.</exception>
+            <exception cref="T:System.Text.EncoderFallbackException">
+                A fallback occurred (see https://msdn.microsoft.com/en-us/library/ms404377(v=vs.110).aspx , Character Encoding in
+                the .NET Framework)-and-<see cref="P:System.Text.Encoding.EncoderFallback" /> is set to
+                <see cref="T:System.Text.EncoderExceptionFallback" />.
+            </exception>
+        </member>
+        <member name="T:AsyncWindowsClipboard.Clipboard.WindowsClipboardSession">
+            <summary>
+                A wrapper for native windows methods. It should be used to communicate with the native methods.
+            </summary>
+            <remarks>
+                <p>This class is not thread safe and should be consumed in the same thread.</p>
+                <p>Calls <see cref="M:AsyncWindowsClipboard.Clipboard.WindowsClipboardSession.Close" /> when being on <see cref="M:System.IDisposable.Dispose" />.</p>
+            </remarks>
+            <seealso cref="T:AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession" />
+            <seealso cref="T:System.IDisposable" />
+        </member>
+        <member name="P:AsyncWindowsClipboard.Clipboard.WindowsClipboardSession.IsOpen">
+            <inheritdoc />
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.WindowsClipboardSession.Clear">
+            <inheritdoc />
+            <remarks>
+                <p>
+                    Before calling <seealso cref="M:AsyncWindowsClipboard.Clipboard.WindowsClipboardSession.Clear" />, an application must open the clipboard by using the
+                    <seealso cref="M:AsyncWindowsClipboard.Clipboard.WindowsClipboardSession.Open" /> function in the same thread.
+                </p>
+            </remarks>
+            <exception cref="T:System.ArgumentException">Throws if clipboard is closed.</exception>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.WindowsClipboardSession.SetData(AsyncWindowsClipboard.Clipboard.ClipboardDataType,System.Byte[])">
+            <inheritdoc />
+            <remarks>
+                <p>A connection must be made using <see cref="M:AsyncWindowsClipboard.Clipboard.WindowsClipboardSession.Open" /> method in the same thread.</p>
+                <p>Data might not be set before <see cref="M:AsyncWindowsClipboard.Clipboard.WindowsClipboardSession.Close" /> or <see cref="M:AsyncWindowsClipboard.Clipboard.WindowsClipboardSession.Dispose" /> methods are called.</p>
+            </remarks>
+            <exception cref="T:System.ArgumentNullException"><paramref name="data" /> is <see langword="null" />.</exception>
+            <exception cref="T:System.ArgumentOutOfRangeException">
+                <paramref name="dataType" /> should be defined in
+                <seealso cref="T:AsyncWindowsClipboard.Clipboard.ClipboardDataType" /> enum.
+            </exception>
+            <exception cref="T:System.ArgumentException">Throws if clipboard is closed.</exception>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.WindowsClipboardSession.GetData(AsyncWindowsClipboard.Clipboard.ClipboardDataType)">
+            <inheritdoc />
+            <remarks>
+                <p>
+                    A connection must be made using <see cref="M:AsyncWindowsClipboard.Clipboard.WindowsClipboardSession.Open" /> method in the same thread.
+                </p>
+            </remarks>
+            <exception cref="T:System.ArgumentException">Throws if clipboard is closed.</exception>
+            <exception cref="T:System.ArgumentOutOfRangeException">
+                <paramref name="dataType" /> should be defined in
+                <seealso cref="T:AsyncWindowsClipboard.Clipboard.ClipboardDataType" /> enum.
+            </exception>
+            <exception cref="T:AsyncWindowsClipboard.Clipboard.Exceptions.ClipboardWindowsApiException">
+                <p>If the <c>GlobalSize</c> function of windows api for the size of the clipboard handle fails.</p>
+                <p>If the <c>GlobalLock</c> function of windows api for the size of the clipboard handle fails.</p>
+            </exception>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.WindowsClipboardSession.Open">
+            <inheritdoc />
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.WindowsClipboardSession.Close">
+            <inheritdoc />
+            <exception cref="T:System.ArgumentException">Throws if clipboard is closed.</exception>
+            <remarks>
+                <p>
+                    Before calling <seealso cref="M:AsyncWindowsClipboard.Clipboard.WindowsClipboardSession.Clear" />, an application must open the clipboard by using the
+                    <seealso cref="M:AsyncWindowsClipboard.Clipboard.WindowsClipboardSession.Open" /> function in the same thread.
+                </p>
+                ///
+                <p>
+                    When the window has finished examining or changing the clipboard, close the clipboard by calling
+                    <see cref="M:AsyncWindowsClipboard.Clipboard.WindowsClipboardSession.Close" />. This enables other windows to access the clipboard.
+                </p>
+                <p>
+                    Do not place an object using <see cref="M:AsyncWindowsClipboard.Clipboard.WindowsClipboardSession.SetData(AsyncWindowsClipboard.Clipboard.ClipboardDataType,System.Byte[])" /> on the clipboard after calling
+                    <see cref="M:AsyncWindowsClipboard.Clipboard.WindowsClipboardSession.Close" />.
+                </p>
+            </remarks>
+            <exception cref="T:System.ArgumentException">Throws if clipboard is closed.</exception>
+            <seealso cref="M:AsyncWindowsClipboard.Clipboard.WindowsClipboardSession.Open" />
+            <seealso cref="M:AsyncWindowsClipboard.Clipboard.WindowsClipboardSession.SetData(AsyncWindowsClipboard.Clipboard.ClipboardDataType,System.Byte[])" />
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.WindowsClipboardSession.IsContentTypeOf(AsyncWindowsClipboard.Clipboard.ClipboardDataType)">
+            <summary>
+                Determines whether the content of the clipboard is <paramref name="dataType" />.
+            </summary>
+            <param name="dataType">Clipboard data format.</param>
+            <returns><c>true</c> if content of the clipboard data is <paramref name="dataType" />, otherwise; <c>false</c>.</returns>
+            <exception cref="T:System.ArgumentOutOfRangeException">
+                <paramref name="dataType" /> should be defined in
+                <seealso cref="T:AsyncWindowsClipboard.Clipboard.ClipboardDataType" /> enum.
+            </exception>
+            <seealso cref="T:AsyncWindowsClipboard.Clipboard.ClipboardDataType" />
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.WindowsClipboardSession.Dispose">
+            <summary>
+                Calls <see cref="M:AsyncWindowsClipboard.Clipboard.WindowsClipboardSession.Clear" />
+            </summary>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.WindowsClipboardSession.ThrowIfNotOpen">
+            <exception cref="T:System.ArgumentException">Throws if clipboard is closed.</exception>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Clipboard.WindowsClipboardSession.ThrowIfNotInRange(AsyncWindowsClipboard.Clipboard.ClipboardDataType)">
+            <exception cref="T:System.ArgumentOutOfRangeException">
+                <paramref name="dataType" /> should be defined in
+                <seealso cref="T:AsyncWindowsClipboard.Clipboard.ClipboardDataType" /> enum.
+            </exception>
+        </member>
+        <member name="T:AsyncWindowsClipboard.IAsyncClipboardService">
+            <summary>
+                Represents a service capable of transferring data to the system clipboard asynchronously.
+            </summary>
+        </member>
+        <member name="P:AsyncWindowsClipboard.IAsyncClipboardService.Timeout">
+            <summary>
+                <p>
+                    If value is <see langword="null" /> then the instance will have no time out strategy. It'll  try to open a
+                    connection to
+                    the windows clipboard api and returns failed status if the initial try fails.
+                </p>
+                <p>
+                    If value is not <see langword="null" /> the instance will try to connect to the windows
+                    clipboard until the value of <see cref="P:AsyncWindowsClipboard.IAsyncClipboardService.Timeout" /> is reached. This might be needed if clipboard is locked by
+                    another application.
+                </p>
+            </summary>
+        </member>
+        <member name="M:AsyncWindowsClipboard.IAsyncClipboardService.SetUnicodeBytesAsync(System.Byte[])">
+            <summary>
+                Sets unicode bytes as text in the clipboard asynchronously.
+            </summary>
+            <param name="textBytes">Bytes to set.</param>
+            <returns>If the operation was successful.</returns>
+        </member>
+        <member name="M:AsyncWindowsClipboard.IAsyncClipboardService.GetAsUnicodeBytesAsync">
+            <summary>
+                Gets the clipboard data as a unicode <see cref="T:System.Byte" /> array asynchronously.
+            </summary>
+            <returns>The data in the clipboard as bytes</returns>
+        </member>
+        <member name="M:AsyncWindowsClipboard.IAsyncClipboardService.GetTextAsync">
+            <summary>
+                Gets the clipboard data as a <see cref="T:System.String" /> asynchronously.
+            </summary>
+            <returns>
+                <p>The data in the clipboard as <see cref="T:System.String" /></p>
+                <p><see langword="null" /> if there is no string data available in the clipboard</p>
+            </returns>
+        </member>
+        <member name="M:AsyncWindowsClipboard.IAsyncClipboardService.SetTextAsync(System.String)">
+            <summary>
+                Sets the text asynchronously.
+            </summary>
+            <param name="value">The value.</param>
+            <returns>If the operation was successful.</returns>
+        </member>
+        <member name="M:AsyncWindowsClipboard.IAsyncClipboardService.SetFileDropListAsync(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+                Sets list of file paths as a file drop list asynchronously.
+            </summary>
+            <param name="filePaths">List of absolute file paths.</param>
+            <returns>If the operation was successful.</returns>
+        </member>
+        <member name="M:AsyncWindowsClipboard.IAsyncClipboardService.GetFileDropListAsync">
+            <summary>
+                Gets the file drop list in the clipboard as list of file paths asynchronously.
+            </summary>
+            <returns>
+                <p>The list of file paths.</p>
+                <p><see langword="null" /> if there is no file drop list  in the clipboard.</p>
+            </returns>
+        </member>
+        <member name="M:AsyncWindowsClipboard.IAsyncClipboardService.ContainsAsync(AsyncWindowsClipboard.ClipboardDataFormat)">
+            <summary>
+                Indicates whether there is data on the clipboard that is in the specified format or can be converted to that
+                format.
+            </summary>
+            <param name="format">The format of the data to look for.</param>
+            <returns>
+                TRUE if there is data on the clipboard that is in the specified <paramref name="format" /> or can be converted to
+                that format; otherwise, false.
+            </returns>
+            <seealso cref="T:AsyncWindowsClipboard.ClipboardDataFormat" />
+        </member>
+        <member name="T:AsyncWindowsClipboard.Modifiers.ClipboardModifierBase">
+            <summary>
+                <p>Provides helper methods/services to manipulate a clipboard connection.</p>
+                <p>Provides strategies for connections with timeout.</p>
+            </summary>
+        </member>
+        <member name="P:AsyncWindowsClipboard.Modifiers.ClipboardModifierBase.Timeout">
+            <summary>
+                <p>Gets or sets the timeout.</p>
+                <p>
+                    If value is <see langword="null" /> then the  <see cref="T:AsyncWindowsClipboard.Modifiers.ClipboardModifierBase" />  instance will have no time
+                    out strategy. It'll  try to open a connection to the windows clipboard api and returns failed status if the
+                    initial
+                    try fails.
+                </p>
+                <p>
+                    If value is not <see langword="null" /> the <see cref="T:AsyncWindowsClipboard.Modifiers.ClipboardModifierBase" /> instance will try to connect
+                    to the windows clipboard until the value of <see cref="P:AsyncWindowsClipboard.Modifiers.ClipboardModifierBase.Timeout" /> is reached. This might be needed if
+                    clipboard is
+                    locked by another application.
+                </p>
+            </summary>
+            <seealso cref="T:AsyncWindowsClipboard.Clipboard.Connection.ClipboardOpenerWithTimeout" />
+        </member>
+        <member name="M:AsyncWindowsClipboard.Modifiers.ClipboardModifierBase.ClearClipboard(AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession)">
+            <summary>
+                Clears the clipboard, and asserts if the operation fails.
+            </summary>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Modifiers.ClipboardModifierBase.EnsureOpenConnection(AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession)">
+            <summary>
+                Opens a connection in given <see cref="T:AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession" />.
+                If the connection fails then it throws exception.
+            </summary>
+            <param name="session">The session.</param>
+            <exception cref="T:AsyncWindowsClipboard.Clipboard.Exceptions.ClipboardWindowsApiException">
+                Connection to the clipboard could not be established.
+            </exception>
+            <exception cref="T:AsyncWindowsClipboard.Clipboard.Exceptions.ClipboardTimeoutException"> Connection to clipboard fails after timeout </exception>
+        </member>
+        <member name="T:AsyncWindowsClipboard.Modifiers.ClipboardModifierFactory">
+            <summary>
+                Factory implementation to get the modifier instance implementing abstract <see cref="T:AsyncWindowsClipboard.Modifiers.ClipboardModifierBase" />
+            </summary>
+            <seealso cref="T:AsyncWindowsClipboard.Modifiers.IClipboardModifierFactory" />
+            <seealso cref="T:AsyncWindowsClipboard.Modifiers.ClipboardModifierBase" />
+        </member>
+        <member name="M:AsyncWindowsClipboard.Modifiers.ClipboardModifierFactory.Get``1(System.Nullable{System.TimeSpan})">
+            <inheritdoc />
+        </member>
+        <member name="M:AsyncWindowsClipboard.Modifiers.Helpers.TaskHelper.StartStaTask``1(System.Func{``0})">
+            <summary>
+                Runs the given
+                <param ref="func" />
+                as a <see cref="T:System.Threading.Tasks.Task" />.
+            </summary>
+            <typeparam name="TResult">The type of the result.</typeparam>
+            <param name="func">The function to run.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.Task`1" /> that runs <paramref name="func"></paramref></returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="func" /> is <see langword="null" />.</exception>
+        </member>
+        <member name="T:AsyncWindowsClipboard.Modifiers.IClipboardModifierFactory">
+            <summary>
+                Generic factory pattern to get the right clipboard modifier instance implementing abstract
+                <see cref="T:AsyncWindowsClipboard.Modifiers.ClipboardModifierBase" />.
+            </summary>
+            <seealso cref="T:AsyncWindowsClipboard.Modifiers.ClipboardModifierBase" />
+        </member>
+        <member name="M:AsyncWindowsClipboard.Modifiers.IClipboardModifierFactory.Get``1(System.Nullable{System.TimeSpan})">
+            <summary>
+                Gets the specified timeout.
+            </summary>
+            <typeparam name="TModifier">The type of the modifier.</typeparam>
+            <param name="timeout">
+                <p>If time out is <see langword="null" /> then the result will be a regular clipboard modifier.</p>
+                <p>
+                    If time out parameter is given and is not <see langword="null" />. Then it'll return a clipboard
+                    modifier with time-out strategy. The modifier will keep on trying to connect to the clipboard until it's
+                    unlocked or timeout is reached.
+                </p>
+            </param>
+            <returns>The related modifier instance.</returns>
+        </member>
+        <member name="T:AsyncWindowsClipboard.Modifiers.Readers.Base.ClipboardReaderBase`1">
+            <summary>
+                <p>Base class that clipboard readers must implement.</p>
+                <p>
+                    Starts and ends asynchronous <see cref="T:AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession" />'s and send its context to its member
+                    classes.
+                </p>
+                <p>Provides helper classes for its members.</p>
+            </summary>
+            <typeparam name="TResult">Result data type from reading operation.</typeparam>
+            <seealso cref="T:AsyncWindowsClipboard.Modifiers.Readers.Base.IClipboardReadingContext" />
+            <seealso cref="T:AsyncWindowsClipboard.Modifiers.Readers.Base.IClipboardReader`1" />
+            <seealso cref="T:AsyncWindowsClipboard.Modifiers.ClipboardModifierBase" />
+        </member>
+        <member name="M:AsyncWindowsClipboard.Modifiers.Readers.Base.ClipboardReaderBase`1.ReadAsync">
+            <remarks>
+                <p>Starts a <see cref="T:AsyncWindowsClipboard.Clipboard.WindowsClipboardSession" /> in an async contexts.</p>
+                <p>Sends the session to abstract <see cref="M:AsyncWindowsClipboard.Modifiers.Readers.Base.ClipboardReaderBase`1.Exists(AsyncWindowsClipboard.Modifiers.Readers.Base.IClipboardReadingContext)" /> and <see cref="M:AsyncWindowsClipboard.Modifiers.Readers.Base.ClipboardReaderBase`1.Read(AsyncWindowsClipboard.Modifiers.Readers.Base.IClipboardReadingContext)" /> methods.</p>
+            </remarks>
+            <inheritdoc />
+            <returns>Null if <see cref="M:AsyncWindowsClipboard.Modifiers.Readers.Base.ClipboardReaderBase`1.Exists(AsyncWindowsClipboard.Modifiers.Readers.Base.IClipboardReadingContext)" /> method returns <c>FALSE</c>; otherwise result from <see cref="M:AsyncWindowsClipboard.Modifiers.Readers.Base.ClipboardReaderBase`1.Read(AsyncWindowsClipboard.Modifiers.Readers.Base.IClipboardReadingContext)" /></returns>
+            <seealso cref="M:AsyncWindowsClipboard.Modifiers.Readers.Base.ClipboardReaderBase`1.Exists(AsyncWindowsClipboard.Modifiers.Readers.Base.IClipboardReadingContext)" />
+            <seealso cref="M:AsyncWindowsClipboard.Modifiers.Readers.Base.ClipboardReaderBase`1.Read(AsyncWindowsClipboard.Modifiers.Readers.Base.IClipboardReadingContext)" />
+            <exception cref="T:AsyncWindowsClipboard.Clipboard.Exceptions.ClipboardWindowsApiException">Connection to the clipboard could not be opened.</exception>
+            <exception cref="T:AsyncWindowsClipboard.Clipboard.Exceptions.ClipboardTimeoutException">Connection to clipboard fails after timeout</exception>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Modifiers.Readers.Base.ClipboardReaderBase`1.ExistsAsync">
+            <summary>
+                Returns if the data type exists in the clipboard.
+            </summary>
+            <returns><c>TRUE</c> if exists, <c>False</c> if it does not.</returns>
+            <exception cref="T:AsyncWindowsClipboard.Clipboard.Exceptions.ClipboardWindowsApiException">Connection to the clipboard could not be opened.</exception>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Modifiers.Readers.Base.ClipboardReaderBase`1.Exists(AsyncWindowsClipboard.Modifiers.Readers.Base.IClipboardReadingContext)">
+            <summary>
+                Returns if the reading object type exists in the given <paramref name="context" />.
+            </summary>
+            <param name="context">Clipboard session context.</param>
+            <returns><c>true</c> if the object type is in clipboard data, <c>false</c> otherwise.</returns>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Modifiers.Readers.Base.ClipboardReaderBase`1.Read(AsyncWindowsClipboard.Modifiers.Readers.Base.IClipboardReadingContext)">
+            <summary>
+                Reads the data from specified <see cref="T:AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession" />.
+            </summary>
+            <param name="context">Clipboard session context.</param>
+            <returns>Result of the reading operation.</returns>
+        </member>
+        <member name="T:AsyncWindowsClipboard.Modifiers.Readers.Base.ClipboardReadingContext">
+            <summary>
+                <p>A class to be used during read operations.</p>
+                <p>A wrapper for <see cref="T:AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession" /></p>
+            </summary>
+            <seealso cref="T:AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession" />
+            <seealso cref="T:AsyncWindowsClipboard.Modifiers.Writers.Base.IClipboardWritingContext" />
+        </member>
+        <member name="M:AsyncWindowsClipboard.Modifiers.Readers.Base.ClipboardReadingContext.#ctor(AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession)">
+            <exception cref="T:System.ArgumentNullException"><paramref name="session" /> is <see langword="null" /></exception>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Modifiers.Readers.Base.ClipboardReadingContext.IsContentTypeOf(AsyncWindowsClipboard.Clipboard.ClipboardDataType)">
+            <inheritdoc />
+        </member>
+        <member name="M:AsyncWindowsClipboard.Modifiers.Readers.Base.ClipboardReadingContext.GetData(AsyncWindowsClipboard.Clipboard.ClipboardDataType)">
+            <inheritdoc />
+        </member>
+        <member name="T:AsyncWindowsClipboard.Modifiers.Readers.Base.IClipboardDataChecker">
+            <summary>
+                Abstraction for a class that can check if its data type exists in the clipboard.
+            </summary>
+            <seealso cref="T:AsyncWindowsClipboard.Modifiers.Readers.Base.IClipboardReader`1" />
+        </member>
+        <member name="T:AsyncWindowsClipboard.Modifiers.Readers.Base.IClipboardReader`1">
+            <summary>
+                Abstraction for different data readers from clipboard.
+            </summary>
+            <typeparam name="TResult">Result data type from reading operation.</typeparam>
+            <seealso cref="T:AsyncWindowsClipboard.Modifiers.Readers.Base.IClipboardDataChecker" />
+        </member>
+        <member name="M:AsyncWindowsClipboard.Modifiers.Readers.Base.IClipboardReader`1.ReadAsync">
+            <summary>
+                Reads and returns the
+                <typeparam ref="TResult" />
+            </summary>
+        </member>
+        <member name="T:AsyncWindowsClipboard.Modifiers.Readers.Base.IClipboardReadingContext">
+            <summary>
+                Context to be used by clipboard readers in an <see cref="T:AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession" />
+            </summary>
+            <seealso cref="T:AsyncWindowsClipboard.Modifiers.Writers.Base.IClipboardWritingContext" />
+            <seealso cref="N:AsyncWindowsClipboard.Modifiers.Writers" />
+        </member>
+        <member name="M:AsyncWindowsClipboard.Modifiers.Readers.Base.IClipboardReadingContext.IsContentTypeOf(AsyncWindowsClipboard.Clipboard.ClipboardDataType)">
+            <summary>
+                Determines whether the content of the clipboard is unicode text.
+            </summary>
+            <returns><c>true</c> if content of the clipboard is unicode text, otherwise; <c>false</c>.</returns>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Modifiers.Readers.Base.IClipboardReadingContext.GetData(AsyncWindowsClipboard.Clipboard.ClipboardDataType)">
+            <summary>
+                Retrieves data from the clipboard in a specified format.
+            </summary>
+        </member>
+        <member name="T:AsyncWindowsClipboard.Modifiers.Readers.FileDropListReader">
+            <summary>
+                Reads the clipboard data as a list of file paths
+            </summary>
+        </member>
+        <member name="T:AsyncWindowsClipboard.Modifiers.Readers.StringReader">
+            <summary>
+                Reads a <see cref="T:System.String" /> text from an <see cref="T:AsyncWindowsClipboard.Modifiers.Readers.Base.IClipboardReadingContext" />.
+            </summary>
+            <seealso cref="T:AsyncWindowsClipboard.Modifiers.Readers.Base.IClipboardReadingContext" />
+        </member>
+        <member name="T:AsyncWindowsClipboard.Modifiers.Readers.UnicodeBytesReader">
+            <summary>
+                Reads byte array containing unicode text from an <see cref="T:AsyncWindowsClipboard.Modifiers.Readers.Base.IClipboardReadingContext" />.
+            </summary>
+            <seealso cref="T:AsyncWindowsClipboard.Modifiers.Readers.Base.IClipboardReadingContext" />
+        </member>
+        <member name="M:AsyncWindowsClipboard.Modifiers.Readers.UnicodeBytesReader.GetBytes(System.Byte[],System.Boolean)">
+            <summary>
+                Clears the extra zeros that's created by windows clipboard api.
+                Clipboard data returns text bytes with extra zeros. 2 zeros bytes in the end for unicode.
+            </summary>
+            <exception cref="T:System.ArgumentNullException"><paramref name="clipboardData" /> is <see langword="null" />.</exception>
+        </member>
+        <member name="T:AsyncWindowsClipboard.Modifiers.Writers.Base.ClipboardWriterBase`1">
+            <summary>
+                <p>Base class that clipboard writers must implement.</p>
+                <p>
+                    Starts and ends asynchronous <see cref="T:AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession" />'s and send its context to its member
+                    classes.
+                </p>
+                <p>Provides helper classes and navigation properties for its members.</p>
+            </summary>
+            <typeparam name="TData">Data type which will be set during this operation.</typeparam>
+            <seealso cref="T:AsyncWindowsClipboard.Modifiers.Writers.Base.IClipboardWritingContext" />
+            <seealso cref="T:AsyncWindowsClipboard.Modifiers.Writers.Base.IClipboardWriter`1" />
+            <seealso cref="T:AsyncWindowsClipboard.Modifiers.ClipboardModifierBase" />
+        </member>
+        <member name="M:AsyncWindowsClipboard.Modifiers.Writers.Base.ClipboardWriterBase`1.WriteAsync(`0)">
+            <inheritdoc />
+            <exception cref="T:AsyncWindowsClipboard.Clipboard.Exceptions.ClipboardWindowsApiException">
+                <p>Communication with windows API's has failed.</p>
+                <p>Connection to the clipboard could not be opened</p>
+            </exception>
+            <exception cref="T:AsyncWindowsClipboard.Clipboard.Exceptions.ClipboardTimeoutException">Connection to clipboard fails after timeout</exception>
+            <exception cref="T:System.ArgumentNullException"><paramref name="data" /> is <see langword="null" /></exception>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Modifiers.Writers.Base.ClipboardWriterBase`1.ThrowIfNotSuccessful(AsyncWindowsClipboard.Clipboard.Result.IClipboardOperationResult)">
+            <exception cref="T:AsyncWindowsClipboard.Clipboard.Exceptions.ClipboardWindowsApiException">Communication with windows APIs has failed.</exception>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Modifiers.Writers.Base.ClipboardWriterBase`1.Write(AsyncWindowsClipboard.Modifiers.Writers.Base.IClipboardWritingContext,`0)">
+            <summary>
+                Reads the data from specified <see cref="T:AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession" />.
+            </summary>
+            <param name="context">Clipboard session context.</param>
+            <param name="data">Data to write to clipboard.</param>
+            <returns>Result of the reading operation.</returns>
+        </member>
+        <member name="T:AsyncWindowsClipboard.Modifiers.Writers.Base.ClipboardWritingContext">
+            <summary>
+                <p>A class to be used during write operations.</p>
+                <p>A wrapper for <see cref="T:AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession" /></p>
+            </summary>
+            <seealso cref="T:AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession" />
+            <seealso cref="T:AsyncWindowsClipboard.Modifiers.Writers.Base.IClipboardWritingContext" />
+        </member>
+        <member name="M:AsyncWindowsClipboard.Modifiers.Writers.Base.ClipboardWritingContext.#ctor(AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession)">
+            <exception cref="T:System.ArgumentNullException"><paramref name="session" /> is <see langword="null" /></exception>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Modifiers.Writers.Base.ClipboardWritingContext.SetData(AsyncWindowsClipboard.Clipboard.ClipboardDataType,System.Byte[])">
+            <inheritdoc />
+        </member>
+        <member name="T:AsyncWindowsClipboard.Modifiers.Writers.Base.IClipboardWriter`1">
+            <summary>
+                Abstraction for a clipboard data setter.
+            </summary>
+            <typeparam name="TData">Type of the data which will be set.</typeparam>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Modifiers.Writers.Base.IClipboardWriter`1.WriteAsync(`0)">
+            <summary>
+                Writes data to the clipboard.
+            </summary>
+            <param name="data">Data to write</param>
+            <returns>Whether the data was written successfully</returns>
+        </member>
+        <member name="T:AsyncWindowsClipboard.Modifiers.Writers.Base.IClipboardWritingContext">
+            <summary>
+                Context to be used by clipboard writers in an <see cref="T:AsyncWindowsClipboard.Clipboard.IWindowsClipboardSession" />
+            </summary>
+            <seealso cref="T:AsyncWindowsClipboard.Modifiers.Readers.Base.IClipboardReadingContext" />
+            <seealso cref="N:AsyncWindowsClipboard.Modifiers.Writers" />
+        </member>
+        <member name="M:AsyncWindowsClipboard.Modifiers.Writers.Base.IClipboardWritingContext.SetData(AsyncWindowsClipboard.Clipboard.ClipboardDataType,System.Byte[])">
+            <summary>
+                Places data on the clipboard in a specified clipboard format.
+            </summary>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Modifiers.Writers.FileDropListWriter.Write(AsyncWindowsClipboard.Modifiers.Writers.Base.IClipboardWritingContext,System.Collections.Generic.IEnumerable{System.String})">
+            <exception cref="T:System.ArgumentNullException"><paramref name="data" /> is <see langword="null" /></exception>
+            <exception cref="T:System.ArgumentException"><paramref name="data" /> is empty list.</exception>
+        </member>
+        <member name="T:AsyncWindowsClipboard.Modifiers.Writers.StringWriter">
+            <summary>
+                Writes a <see cref="T:System.String" /> text to a <see cref="T:AsyncWindowsClipboard.Modifiers.Writers.Base.IClipboardWritingContext" />.
+            </summary>
+            <seealso cref="T:AsyncWindowsClipboard.Modifiers.Writers.Base.IClipboardWritingContext" />
+        </member>
+        <member name="M:AsyncWindowsClipboard.Modifiers.Writers.StringWriter.Write(AsyncWindowsClipboard.Modifiers.Writers.Base.IClipboardWritingContext,System.String)">
+            <exception cref="T:System.ArgumentNullException"><paramref name="context" /> is <see langword="null" /></exception>
+            <exception cref="T:System.ArgumentNullException"><paramref name="data" /> is <see langword="null" /></exception>
+        </member>
+        <member name="T:AsyncWindowsClipboard.Modifiers.Writers.UnicodeBytesWriter">
+            <summary>
+                Writes a byte array containing unicode characters to a <see cref="T:AsyncWindowsClipboard.Modifiers.Writers.Base.IClipboardWritingContext" />.
+            </summary>
+            <seealso cref="T:AsyncWindowsClipboard.Modifiers.Writers.Base.IClipboardWritingContext" />
+        </member>
+        <member name="M:AsyncWindowsClipboard.Modifiers.Writers.UnicodeBytesWriter.Write(AsyncWindowsClipboard.Modifiers.Writers.Base.IClipboardWritingContext,System.Byte[])">
+            <exception cref="T:System.ArgumentNullException"><paramref name="context" /> is <see langword="null" />.</exception>
+            <exception cref="T:System.ArgumentNullException"><paramref name="data" /> is <see langword="null" />.</exception>
+            <exception cref="T:System.ArgumentException"><paramref name="data" /> is empty.</exception>
+        </member>
+        <member name="M:AsyncWindowsClipboard.Modifiers.Writers.UnicodeBytesWriter.TransformToUnicodeClipboardBytes(System.Byte[])">
+            <summary>
+                Clipboard text data must have extra zeros in the ends. 2 zeros bytes in the end for unicode.
+                This method adds the extra zero bytes.
+            </summary>
+            <exception cref="T:System.ArgumentNullException"><paramref name="textBytes" /> is <see langword="null" />.</exception>
+        </member>
+        <member name="T:AsyncWindowsClipboard.WindowsClipboardService">
+            <summary>
+                <p>Connects to and controls windows clipboard asynchronously.</p>
+                <p>This class is thread-safe, and it's state is depended on <see cref="P:AsyncWindowsClipboard.WindowsClipboardService.Timeout" /> property.</p>
+            </summary>
+            <remark>
+                <p>
+                    It's recommended to use it with a <see cref="P:AsyncWindowsClipboard.WindowsClipboardService.Timeout" /> setting, as it'll then wait for the thread that blocks
+                    the windows api instead of failing.
+                </p>
+            </remark>
+            <seealso cref="T:AsyncWindowsClipboard.IAsyncClipboardService" />
+        </member>
+        <member name="M:AsyncWindowsClipboard.WindowsClipboardService.#ctor(System.TimeSpan)">
+            <summary>
+                <p>Initializes a new instance of the <see cref="T:AsyncWindowsClipboard.WindowsClipboardService" /> class with timeout strategy.</p>
+                <p>
+                    This constructor will set <see cref="P:AsyncWindowsClipboard.WindowsClipboardService.Timeout" /> property a not-<see langword="null" /> value which will
+                    eventually activate the time out strategy. In this case if the initial try of opening a connection to clipboard
+                    fails (might be due
+                    to another thread / or application locking it), this <see cref="T:AsyncWindowsClipboard.WindowsClipboardService" /> instance will
+                    then try to connect to the the windows clipboard until <paramref name="timeout" /> is reached.
+                </p>
+            </summary>
+            <param name="timeout">The timeout to stop trying to access the clipboard.</param>
+            <seealso cref="P:AsyncWindowsClipboard.WindowsClipboardService.Timeout" />
+        </member>
+        <member name="M:AsyncWindowsClipboard.WindowsClipboardService.#ctor">
+            <summary>
+                <p>Initializes a new instance of the <see cref="T:AsyncWindowsClipboard.WindowsClipboardService" /> class without the timeout strategy.</p>
+                <p>
+                    The instance will try to connect to the windows clipboard and fail if the connection is locked by another
+                    application.
+                </p>
+            </summary>
+            <remarks>
+                <p>The timeout strategy can be by setting <see cref="P:AsyncWindowsClipboard.WindowsClipboardService.Timeout" /> property to a not <see langword="null" /> value.</p>
+            </remarks>
+            <seealso cref="M:AsyncWindowsClipboard.WindowsClipboardService.#ctor(System.TimeSpan)" />
+            <seealso cref="P:AsyncWindowsClipboard.WindowsClipboardService.Timeout" />
+        </member>
+        <member name="M:AsyncWindowsClipboard.WindowsClipboardService.#ctor(AsyncWindowsClipboard.Modifiers.IClipboardModifierFactory)">
+            <summary>
+                Internal constructor for dependency injections.
+            </summary>
+        </member>
+        <member name="P:AsyncWindowsClipboard.WindowsClipboardService.Timeout">
+            <inheritdoc />
+            <seealso cref="T:AsyncWindowsClipboard.Clipboard.Connection.ClipboardOpenerWithTimeout" />
+        </member>
+        <member name="M:AsyncWindowsClipboard.WindowsClipboardService.GetAsUnicodeBytesAsync">
+            <exception cref="T:AsyncWindowsClipboard.Clipboard.Exceptions.ClipboardWindowsApiException">Connection to the clipboard could not be opened.</exception>
+        </member>
+        <member name="M:AsyncWindowsClipboard.WindowsClipboardService.GetTextAsync">
+            <inheritdoc />
+            <exception cref="T:AsyncWindowsClipboard.Clipboard.Exceptions.ClipboardWindowsApiException">Connection to the clipboard could not be opened.</exception>
+        </member>
+        <member name="M:AsyncWindowsClipboard.WindowsClipboardService.SetTextAsync(System.String)">
+            <inheritdoc />
+            <exception cref="T:AsyncWindowsClipboard.Clipboard.Exceptions.ClipboardWindowsApiException">Connection to the clipboard could not be opened.</exception>
+            <exception cref="T:System.ArgumentNullException"><paramref name="value" /> is <see langword="null" /></exception>
+            <exception cref="T:AsyncWindowsClipboard.Clipboard.Exceptions.ClipboardTimeoutException">Connection to clipboard fails after timeout</exception>
+        </member>
+        <member name="M:AsyncWindowsClipboard.WindowsClipboardService.GetFileDropListAsync">
+            <inheritdoc />
+            <exception cref="T:AsyncWindowsClipboard.Clipboard.Exceptions.ClipboardWindowsApiException">Connection to the clipboard could not be opened.</exception>
+        </member>
+        <member name="M:AsyncWindowsClipboard.WindowsClipboardService.SetFileDropListAsync(System.Collections.Generic.IEnumerable{System.String})">
+            <inheritdoc />
+            <exception cref="T:AsyncWindowsClipboard.Clipboard.Exceptions.ClipboardWindowsApiException">Connection to the clipboard could not be opened.</exception>
+        </member>
+        <member name="M:AsyncWindowsClipboard.WindowsClipboardService.ContainsAsync(AsyncWindowsClipboard.ClipboardDataFormat)">
+            <inheritdoc />
+            <remarks>
+                The alternative way of checking if the data format exists can be using one of Get methods and check if the result
+                is <see langword="null" />.
+                Because get methods (<see cref="M:AsyncWindowsClipboard.WindowsClipboardService.GetTextAsync" />, <see cref="M:AsyncWindowsClipboard.WindowsClipboardService.GetFileDropListAsync" />,
+                <see cref="M:AsyncWindowsClipboard.WindowsClipboardService.GetAsUnicodeBytesAsync" />)
+                returns <see langword="null" />, if the clipboard does not contain any data that is in the wanted format or
+                can be converted to that format.
+                <example>
+                    <code>
+                       var result = await ContainsAsync(ClipboardDataFormat.Text); //returns if text format exists in the clipboard
+                       var same = await GetTextAsync() == null; //gives same result
+                    </code>
+                </example>
+            </remarks>
+            <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="format" /> is unknown.</exception>
+            <seealso cref="T:AsyncWindowsClipboard.ClipboardDataFormat" />
+        </member>
+        <member name="M:AsyncWindowsClipboard.WindowsClipboardService.SetUnicodeBytesAsync(System.Byte[])">
+            <inheritdoc />
+            <exception cref="T:System.ArgumentNullException"><paramref name="textBytes" /> is <see langword="null" />.</exception>
+            <exception cref="T:System.ArgumentException"><paramref name="textBytes" /> is empty.</exception>
+            <exception cref="T:AsyncWindowsClipboard.Clipboard.Exceptions.ClipboardWindowsApiException">Connection to the clipboard could not be opened.</exception>
+        </member>
+        <member name="M:AsyncWindowsClipboard.WindowsClipboardService.GetDataChecker(AsyncWindowsClipboard.ClipboardDataFormat)">
+            <summary>
+                Gets right <seealso cref="T:AsyncWindowsClipboard.Modifiers.Readers.Base.IClipboardDataChecker" /> instance for the given format.
+            </summary>
+            <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="format" /> is unknown.</exception>
+        </member>
+    </members>
+</doc>

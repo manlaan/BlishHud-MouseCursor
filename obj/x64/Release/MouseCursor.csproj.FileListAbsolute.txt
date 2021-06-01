@@ -1,0 +1,7 @@
+C:\Users\manla\source\repos\MouseCursor\bin\x64\Release\manifest.json
+C:\Users\manla\source\repos\MouseCursor\bin\x64\Release\MouseCursor.dll.config
+C:\Users\manla\source\repos\MouseCursor\bin\x64\Release\MouseCursor.dll
+C:\Users\manla\source\repos\MouseCursor\bin\x64\Release\MouseCursor.pdb
+C:\Users\manla\source\repos\MouseCursor\obj\x64\Release\MouseCursor.csproj.CoreCompileInputs.cache
+C:\Users\manla\source\repos\MouseCursor\obj\x64\Release\MouseCursor.dll
+C:\Users\manla\source\repos\MouseCursor\obj\x64\Release\MouseCursor.pdb
