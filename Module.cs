@@ -33,9 +33,9 @@ namespace MouseCursor
             CircleYellow,
         }
 
-        private SettingEntry<float> _settingMouseCursorRadius;
+        private SettingEntry<int> _settingMouseCursorSize;
         private SettingEntry<float> _settingMouseCursorOpacity;
-        private SettingEntry<MouseFiles> _settingMouseCursorType;
+        private SettingEntry<MouseFiles> _settingMouseCursorImage;
         private string _mouseCursorFile;
         private DrawMouseCursor _mouseImg;
 
@@ -44,12 +44,16 @@ namespace MouseCursor
 
         protected override void DefineSettings(SettingCollection settings)
         {
-            _settingMouseCursorType = settings.DefineSetting("MouseCursorType", MouseFiles.CircleCyan, "Mouse Type", "");
-            _settingMouseCursorRadius = settings.DefineSetting("MouseCursorRadius", 50f, "Mouse Size", "");
-            _settingMouseCursorOpacity = settings.DefineSetting("MouseCursorOpacity", 100f, "Mouse Opacity", "");
+            _settingMouseCursorImage = settings.DefineSetting("MouseCursorImage", MouseFiles.CircleCyan, "Image", "");
+            _settingMouseCursorSize = settings.DefineSetting("MouseCursorSize", 50, "Size", "");
+            _settingMouseCursorOpacity = settings.DefineSetting("MouseCursorOpacity", 100f, "Opacity", "");
 
-            //not sure why I cant use SetRange, so values adjusted in UpdateMouseSettings()
-            //_settingMouseCursorRadius.SetRange(20f, 200f);
+            _settingMouseCursorSize.SettingChanged += UpdateMouseSettings_Size;
+            _settingMouseCursorOpacity.SettingChanged += UpdateMouseSettings_Opacity;
+            _settingMouseCursorImage.SettingChanged += UpdateMouseSettings_Img;
+
+            //not sure why .SetRange doesn't exist for me, so values adjusted in UpdateMouseSettings()
+            //_settingMouseCursorRadius.SetRange(20, 200);
             //_settingMouseCursorOpacity.SetRange(0f, 1f);
         }
 
@@ -59,11 +63,11 @@ namespace MouseCursor
             //change to reading files in a directory so user can add own graphic files easily
             //setup directory and copy default mouse files 
 
-            _settingMouseCursorRadius.SettingChanged += UpdateMouseSettings;
-            _settingMouseCursorOpacity.SettingChanged += UpdateMouseSettings;
-
             _mouseImg = new DrawMouseCursor();
             _mouseImg.Parent = GameService.Graphics.SpriteScreen;
+            UpdateMouseSettings_Size();
+            UpdateMouseSettings_Opacity();
+            UpdateMouseSettings_Img();
         }
 
         protected override async Task LoadAsync()
@@ -78,35 +82,37 @@ namespace MouseCursor
 
         protected override void Update(GameTime gameTime)
         {
-            //better way to handle when settings select box is modified?
-            if (_mouseCursorFile != getMouseFileName())
-                UpdateMouseSettings();
-
-            int x = (int)(GameService.Input.Mouse.Position.X - ((_settingMouseCursorRadius.Value + 20) / 2));
-            int y = (int)(GameService.Input.Mouse.Position.Y - ((_settingMouseCursorRadius.Value + 20) / 2));
+            int x = (int)(GameService.Input.Mouse.Position.X - ((_settingMouseCursorSize.Value + 20) / 2));
+            int y = (int)(GameService.Input.Mouse.Position.Y - ((_settingMouseCursorSize.Value + 20) / 2));
             _mouseImg.Location = new Point(x, y);
         }
 
         /// <inheritdoc />
         protected override void Unload()
         {
-            _settingMouseCursorRadius.SettingChanged -= UpdateMouseSettings;
-            _settingMouseCursorOpacity.SettingChanged -= UpdateMouseSettings;
+            _settingMouseCursorSize.SettingChanged -= UpdateMouseSettings_Size;
+            _settingMouseCursorOpacity.SettingChanged -= UpdateMouseSettings_Opacity;
+            _settingMouseCursorImage.SettingChanged -= UpdateMouseSettings_Img;
             _mouseImg?.Dispose();
         }
 
 
-        private void UpdateMouseSettings(object sender = null, ValueChangedEventArgs<float> e = null)
+        private void UpdateMouseSettings_Size(object sender = null, ValueChangedEventArgs<int> e = null)
         {
-            _mouseCursorFile = getMouseFileName();
-            _mouseImg.Size = new Point((int)(_settingMouseCursorRadius.Value + 20), (int)(_settingMouseCursorRadius.Value + 20));
-            _mouseImg.Opacity = _settingMouseCursorOpacity.Value / 100;
-            _mouseImg.Texture = ContentsManager.GetTexture(_mouseCursorFile);
+            _mouseImg.Size = new Point(_settingMouseCursorSize.Value + 20, _settingMouseCursorSize.Value + 20);
         }
-        private string getMouseFileName()
+        private void UpdateMouseSettings_Opacity(object sender = null, ValueChangedEventArgs<float> e = null)
+        {
+            _mouseImg.Opacity = _settingMouseCursorOpacity.Value / 100;
+        }
+        private void UpdateMouseSettings_Img(object sender = null, ValueChangedEventArgs<MouseFiles> e = null)
+        {
+            _mouseImg.Texture = ContentsManager.GetTexture(getMouseFileName(_settingMouseCursorImage.Value));
+        }
+        private string getMouseFileName(MouseFiles mouseFiles)
         {
             string filename;
-            switch (_settingMouseCursorType.Value)
+            switch (mouseFiles)
             {
                 default:
                 case MouseFiles.CircleCyan:
