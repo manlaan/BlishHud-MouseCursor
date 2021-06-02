@@ -36,7 +36,6 @@ namespace MouseCursor
         private SettingEntry<int> _settingMouseCursorSize;
         private SettingEntry<float> _settingMouseCursorOpacity;
         private SettingEntry<MouseFiles> _settingMouseCursorImage;
-        private string _mouseCursorFile;
         private DrawMouseCursor _mouseImg;
 
         [ImportingConstructor]
@@ -109,10 +108,10 @@ namespace MouseCursor
         {
             _mouseImg.Texture = ContentsManager.GetTexture(getMouseFileName(_settingMouseCursorImage.Value));
         }
-        private string getMouseFileName(MouseFiles mouseFiles)
+        private string getMouseFileName(MouseFiles mouseFile)
         {
             string filename;
-            switch (mouseFiles)
+            switch (mouseFile)
             {
                 default:
                 case MouseFiles.CircleCyan:
