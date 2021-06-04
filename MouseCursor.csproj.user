@@ -3,6 +3,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <StartAction>Program</StartAction>
     <StartProgram>C:\Users\manla\Desktop\Games\Blish.HUD\Blish HUD.exe</StartProgram>
-    <StartArguments>--module C:\Users\manla\source\repos\MouseCursor\bin\x64\Debug\MouseCursor.bhm</StartArguments>
+    <StartArguments>--process powershell --window ConsoleWindowClass --module C:\Users\manla\source\repos\MouseCursor\bin\x64\Debug\MouseCursor.bhm</StartArguments>
   </PropertyGroup>
 </Project>
