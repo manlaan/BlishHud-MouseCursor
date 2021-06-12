@@ -1,13 +1,15 @@
-﻿using Blish_HUD;
+﻿using System;
+using System.ComponentModel.Composition;
+using System.Threading.Tasks;
+using Blish_HUD;
 using Blish_HUD.Modules;
 using Blish_HUD.Modules.Managers;
 using Blish_HUD.Settings;
+using manla.MouseCursor.Controls;
 using Microsoft.Xna.Framework;
-using System;
-using System.ComponentModel.Composition;
-using System.Threading.Tasks;
+using static Blish_HUD.GameService;
 
-namespace MouseCursor
+namespace manla.MouseCursor
 {
     [Export(typeof(Blish_HUD.Modules.Module))]
     public class Module : Blish_HUD.Modules.Module
@@ -16,10 +18,10 @@ namespace MouseCursor
         private static readonly Logger Logger = Logger.GetLogger<Module>();
 
         #region Service Managers
-        internal SettingsManager SettingsManager => this.ModuleParameters.SettingsManager;
-        internal ContentsManager ContentsManager => this.ModuleParameters.ContentsManager;
-        internal DirectoriesManager DirectoriesManager => this.ModuleParameters.DirectoriesManager;
-        internal Gw2ApiManager Gw2ApiManager => this.ModuleParameters.Gw2ApiManager;
+        internal SettingsManager SettingsManager => ModuleParameters.SettingsManager;
+        internal ContentsManager ContentsManager => ModuleParameters.ContentsManager;
+        internal DirectoriesManager DirectoriesManager => ModuleParameters.DirectoriesManager;
+        internal Gw2ApiManager Gw2ApiManager => ModuleParameters.Gw2ApiManager;
         #endregion
 
 
@@ -36,6 +38,7 @@ namespace MouseCursor
         private SettingEntry<int> _settingMouseCursorSize;
         private SettingEntry<float> _settingMouseCursorOpacity;
         private SettingEntry<MouseFiles> _settingMouseCursorImage;
+        private SettingEntry<bool> _settingMouseCursorCameraDrag;
         private DrawMouseCursor _mouseImg;
 
         [ImportingConstructor]
@@ -46,7 +49,7 @@ namespace MouseCursor
             _settingMouseCursorImage = settings.DefineSetting("MouseCursorImage", MouseFiles.CircleCyan, "Image", "");
             _settingMouseCursorSize = settings.DefineSetting("MouseCursorSize", 50, "Size", "");
             _settingMouseCursorOpacity = settings.DefineSetting("MouseCursorOpacity", 100f, "Opacity", "");
-
+            _settingMouseCursorCameraDrag = settings.DefineSetting("MouseCursorCameraDrag", false, "Show When Camera Dragging", "Shows the cursor when you move the camera.");
             _settingMouseCursorSize.SettingChanged += UpdateMouseSettings_Size;
             _settingMouseCursorOpacity.SettingChanged += UpdateMouseSettings_Opacity;
             _settingMouseCursorImage.SettingChanged += UpdateMouseSettings_Img;
@@ -63,7 +66,7 @@ namespace MouseCursor
             //setup directory and copy default mouse files 
 
             _mouseImg = new DrawMouseCursor();
-            _mouseImg.Parent = GameService.Graphics.SpriteScreen;
+            _mouseImg.Parent = Graphics.SpriteScreen;
             UpdateMouseSettings_Size();
             UpdateMouseSettings_Opacity();
             UpdateMouseSettings_Img();
@@ -81,8 +84,9 @@ namespace MouseCursor
 
         protected override void Update(GameTime gameTime)
         {
-            int x = (int)(GameService.Input.Mouse.Position.X - ((_settingMouseCursorSize.Value + 20) / 2));
-            int y = (int)(GameService.Input.Mouse.Position.Y - ((_settingMouseCursorSize.Value + 20) / 2));
+            _mouseImg.Visible = _settingMouseCursorCameraDrag.Value || !Input.Mouse.CameraDragging;
+            int x = Input.Mouse.Position.X - (_settingMouseCursorSize.Value + 20) / 2;
+            int y = Input.Mouse.Position.Y - (_settingMouseCursorSize.Value + 20) / 2;
             _mouseImg.Location = new Point(x, y);
         }
 
@@ -108,6 +112,7 @@ namespace MouseCursor
         {
             _mouseImg.Texture = ContentsManager.GetTexture(getMouseFileName(_settingMouseCursorImage.Value));
         }
+
         private string getMouseFileName(MouseFiles mouseFile)
         {
             string filename;
