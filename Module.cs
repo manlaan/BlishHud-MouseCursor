@@ -5,11 +5,11 @@ using Blish_HUD;
 using Blish_HUD.Modules;
 using Blish_HUD.Modules.Managers;
 using Blish_HUD.Settings;
-using manla.MouseCursor.Controls;
+using MouseCursor.Controls;
 using Microsoft.Xna.Framework;
 using static Blish_HUD.GameService;
 
-namespace manla.MouseCursor
+namespace MouseCursor
 {
     [Export(typeof(Blish_HUD.Modules.Module))]
     public class Module : Blish_HUD.Modules.Module
@@ -54,9 +54,8 @@ namespace manla.MouseCursor
             _settingMouseCursorOpacity.SettingChanged += UpdateMouseSettings_Opacity;
             _settingMouseCursorImage.SettingChanged += UpdateMouseSettings_Img;
 
-            //not sure why .SetRange doesn't exist for me, so values adjusted in UpdateMouseSettings()
-            //_settingMouseCursorRadius.SetRange(20, 200);
-            //_settingMouseCursorOpacity.SetRange(0f, 1f);
+            _settingMouseCursorSize.SetRange(0, 200);
+            _settingMouseCursorOpacity.SetRange(0f, 1f);
         }
 
         protected override void Initialize()
@@ -85,8 +84,8 @@ namespace manla.MouseCursor
         protected override void Update(GameTime gameTime)
         {
             _mouseImg.Visible = _settingMouseCursorCameraDrag.Value || !Input.Mouse.CameraDragging;
-            int x = Input.Mouse.Position.X - (_settingMouseCursorSize.Value + 20) / 2;
-            int y = Input.Mouse.Position.Y - (_settingMouseCursorSize.Value + 20) / 2;
+            int x = Input.Mouse.Position.X - _settingMouseCursorSize.Value / 2;
+            int y = Input.Mouse.Position.Y - _settingMouseCursorSize.Value / 2;
             _mouseImg.Location = new Point(x, y);
         }
 
@@ -102,11 +101,11 @@ namespace manla.MouseCursor
 
         private void UpdateMouseSettings_Size(object sender = null, ValueChangedEventArgs<int> e = null)
         {
-            _mouseImg.Size = new Point(_settingMouseCursorSize.Value + 20, _settingMouseCursorSize.Value + 20);
+            _mouseImg.Size = new Point(_settingMouseCursorSize.Value, _settingMouseCursorSize.Value);
         }
         private void UpdateMouseSettings_Opacity(object sender = null, ValueChangedEventArgs<float> e = null)
         {
-            _mouseImg.Opacity = _settingMouseCursorOpacity.Value / 100;
+            _mouseImg.Opacity = _settingMouseCursorOpacity.Value;
         }
         private void UpdateMouseSettings_Img(object sender = null, ValueChangedEventArgs<MouseFiles> e = null)
         {

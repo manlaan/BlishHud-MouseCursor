@@ -3,7 +3,7 @@ using Blish_HUD.Controls;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace manla.MouseCursor.Controls
+namespace MouseCursor.Controls
 {
     public class DrawMouseCursor : Container
     {
