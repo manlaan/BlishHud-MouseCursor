@@ -47,8 +47,8 @@ namespace MouseCursor
         protected override void DefineSettings(SettingCollection settings)
         {
             _settingMouseCursorImage = settings.DefineSetting("MouseCursorImage", MouseFiles.CircleCyan, "Image", "");
-            _settingMouseCursorSize = settings.DefineSetting("MouseCursorSize", 50, "Size", "");
-            _settingMouseCursorOpacity = settings.DefineSetting("MouseCursorOpacity", 100f, "Opacity", "");
+            _settingMouseCursorSize = settings.DefineSetting("MouseCursorSize", 70, "Size", "");
+            _settingMouseCursorOpacity = settings.DefineSetting("MouseCursorOpacity", 1f, "Opacity", "");
             _settingMouseCursorCameraDrag = settings.DefineSetting("MouseCursorCameraDrag", false, "Show When Camera Dragging", "Shows the cursor when you move the camera.");
             _settingMouseCursorSize.SettingChanged += UpdateMouseSettings_Size;
             _settingMouseCursorOpacity.SettingChanged += UpdateMouseSettings_Opacity;
