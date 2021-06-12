@@ -7,7 +7,7 @@
 
     "description": "Displays a custom image under your mouse pointer.",
     "dependencies": {
-        "bh.blishhud": ">=0.5.3"
+        "bh.blishhud": ">=0.7.0"
     },
     "url": "https://github.com/manlaan/BlishHud-MouseCursor",
   "contributors": [
