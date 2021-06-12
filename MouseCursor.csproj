@@ -73,9 +73,8 @@
       <SpecificVersion>False</SpecificVersion>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Blish HUD, Version=0.5.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\BlishHUD.0.5.2-alpha.648\lib\net472\Blish HUD.exe</HintPath>
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Blish HUD">
+      <HintPath>..\Blish-HUD\Blish HUD\bin\x64\Debug\net472\Blish HUD.exe</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Gw2Sharp, Version=0.10.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -209,12 +208,10 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>
-    </PreBuildEvent>
+    <PreBuildEvent>powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$(ProjectDir)BuildScripts\CopyRef.ps1" -Project "$(ProjectDir)\" -Output "$(OutDir)\"</PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
+    <PostBuildEvent>powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$(ProjectDir)BuildScripts\PackageModule.ps1" -Project "$(ProjectDir)\" -Output "$(OutDir)\" -Name "$(ProjectName)"</PostBuildEvent>
   </PropertyGroup>
   <Import Project="packages\MonoGame.Framework.WindowsDX.3.7.1.189\build\MonoGame.Framework.WindowsDX.targets" Condition="Exists('packages\MonoGame.Framework.WindowsDX.3.7.1.189\build\MonoGame.Framework.WindowsDX.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
