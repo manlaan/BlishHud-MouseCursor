@@ -203,9 +203,6 @@
   <ItemGroup>
     <None Include="ref\_instructions.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="Blish HUD.DebugHelper.exe" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>powershell.exe -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$(ProjectDir)BuildScripts\CopyRef.ps1" -Project "$(ProjectDir)\" -Output "$(OutDir)\"</PreBuildEvent>
