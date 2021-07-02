@@ -2,11 +2,13 @@
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Blish_HUD;
+using Blish_HUD.Input;
 using Blish_HUD.Modules;
 using Blish_HUD.Modules.Managers;
 using Blish_HUD.Settings;
 using MouseCursor.Controls;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using static Blish_HUD.GameService;
 
 namespace MouseCursor
@@ -40,6 +42,7 @@ namespace MouseCursor
         private SettingEntry<MouseFiles> _settingMouseCursorImage;
         private SettingEntry<bool> _settingMouseCursorCameraDrag;
         private DrawMouseCursor _mouseImg;
+        private Point _mousePos = new Point(0, 0);
 
         [ImportingConstructor]
         public Module([Import("ModuleParameters")] ModuleParameters moduleParameters) : base(moduleParameters) { }
@@ -69,6 +72,8 @@ namespace MouseCursor
             UpdateMouseSettings_Size();
             UpdateMouseSettings_Opacity();
             UpdateMouseSettings_Img();
+
+            Input.Mouse.RightMouseButtonPressed += UpdateMousePos;
         }
 
         protected override async Task LoadAsync()
@@ -84,9 +89,18 @@ namespace MouseCursor
         protected override void Update(GameTime gameTime)
         {
             _mouseImg.Visible = _settingMouseCursorCameraDrag.Value || !Input.Mouse.CameraDragging;
-            int x = Input.Mouse.Position.X - _settingMouseCursorSize.Value / 2;
-            int y = Input.Mouse.Position.Y - _settingMouseCursorSize.Value / 2;
-            _mouseImg.Location = new Point(x, y);
+            if (Input.Mouse.State.RightButton != ButtonState.Pressed && _mouseImg.Visible)
+            {
+                int x = Input.Mouse.Position.X - _settingMouseCursorSize.Value / 2;
+                int y = Input.Mouse.Position.Y - _settingMouseCursorSize.Value / 2;
+                _mouseImg.Location = new Point(x, y);
+            }
+            else if (Input.Mouse.State.RightButton == ButtonState.Pressed && _mouseImg.Visible)
+            {
+                int x = _mousePos.X - _settingMouseCursorSize.Value / 2;
+                int y = _mousePos.Y - _settingMouseCursorSize.Value / 2;
+                _mouseImg.Location = new Point(x, y);
+            }
         }
 
         /// <inheritdoc />
@@ -95,6 +109,7 @@ namespace MouseCursor
             _settingMouseCursorSize.SettingChanged -= UpdateMouseSettings_Size;
             _settingMouseCursorOpacity.SettingChanged -= UpdateMouseSettings_Opacity;
             _settingMouseCursorImage.SettingChanged -= UpdateMouseSettings_Img;
+            Input.Mouse.RightMouseButtonPressed -= UpdateMousePos;
             _mouseImg?.Dispose();
         }
 
@@ -138,6 +153,10 @@ namespace MouseCursor
                     break;
             }
             return filename;
+        }
+        private void UpdateMousePos(object sender, MouseEventArgs e)
+        {
+            _mousePos = Input.Mouse.Position;
         }
 
 
