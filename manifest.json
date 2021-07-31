@@ -1,7 +1,7 @@
 {
     "name": "Mouse Cursor",
-    "version": "1.0.3",
-    "namespace": "MouseCursor",
+    "version": "1.0.4",
+    "namespace": "Manlaan.MouseCursor",
     "package": "MouseCursor.dll",
     "manifest_version": 1,
 
@@ -19,6 +19,5 @@
       "name": "Nekres",
       "username": "Nekres.1038"
     }
-  ],
-    "directories": [ "mousecursor" ]
+  ]
 }

@@ -6,12 +6,12 @@ using Blish_HUD.Input;
 using Blish_HUD.Modules;
 using Blish_HUD.Modules.Managers;
 using Blish_HUD.Settings;
-using MouseCursor.Controls;
+using Manlaan.MouseCursor.Controls;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using static Blish_HUD.GameService;
 
-namespace MouseCursor
+namespace Manlaan.MouseCursor
 {
     [Export(typeof(Blish_HUD.Modules.Module))]
     public class Module : Blish_HUD.Modules.Module
