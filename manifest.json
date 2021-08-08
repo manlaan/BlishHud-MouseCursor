@@ -1,6 +1,6 @@
 {
     "name": "Mouse Cursor",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "namespace": "Manlaan.MouseCursor",
     "package": "MouseCursor.dll",
     "manifest_version": 1,
