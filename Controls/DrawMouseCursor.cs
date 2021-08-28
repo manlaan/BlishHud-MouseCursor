@@ -13,13 +13,14 @@ namespace Manlaan.MouseCursor.Controls
         {
             this.Location = new Point(0, 0);
             this.Visible = true;
-            this.ZIndex = int.MinValue;   //Would like to set this above Blish, but CaptureType.ForceNone requires drawing this below Blish or all clicks go through blish, including menus/forms.  Conditional CapturesInput?
+            this.ZIndex = int.MaxValue;
+            //this.ZIndex = int.MinValue;   //Would like to set this above Blish, but CaptureType.ForceNone requires drawing this below Blish or all clicks go through blish, including menus/forms.  Conditional CapturesInput?
             this.Padding = Thickness.Zero;
         }
 
         protected override CaptureType CapturesInput()
         {
-            return CaptureType.ForceNone;
+            return CaptureType.Filter;
         }
 
         public override void PaintBeforeChildren(SpriteBatch spriteBatch, Rectangle bounds)

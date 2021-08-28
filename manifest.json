@@ -1,13 +1,13 @@
 {
     "name": "Mouse Cursor",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "namespace": "Manlaan.MouseCursor",
     "package": "MouseCursor.dll",
     "manifest_version": 1,
 
     "description": "Displays a custom image under your mouse pointer.",
     "dependencies": {
-        "bh.blishhud": ">=0.7.0"
+        "bh.blishhud": ">=0.10.0"
     },
     "url": "https://github.com/manlaan/BlishHud-MouseCursor",
   "contributors": [
