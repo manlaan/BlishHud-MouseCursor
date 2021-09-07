@@ -9,12 +9,12 @@ namespace Manlaan.MouseCursor.Controls
     {
 
         public Texture2D Texture;
+        public Color Tint = Color.White;
+        public bool AboveBlish = false;
         public DrawMouseCursor()
         {
             this.Location = new Point(0, 0);
             this.Visible = true;
-            this.ZIndex = int.MaxValue;
-            //this.ZIndex = int.MinValue;   //Would like to set this above Blish, but CaptureType.ForceNone requires drawing this below Blish or all clicks go through blish, including menus/forms.  Conditional CapturesInput?
             this.Padding = Thickness.Zero;
         }
 
@@ -25,11 +25,15 @@ namespace Manlaan.MouseCursor.Controls
 
         public override void PaintBeforeChildren(SpriteBatch spriteBatch, Rectangle bounds)
         {
+            if (AboveBlish)
+                ZIndex = int.MaxValue;
+            else
+                ZIndex = int.MinValue;
             spriteBatch.DrawOnCtrl(this,
                 this.Texture,
                 new Rectangle(0, 0, Size.X, Size.Y),
                 null,
-                Color.White
+                Tint
                 );
         }
 

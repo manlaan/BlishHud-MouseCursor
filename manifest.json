@@ -1,6 +1,6 @@
 {
     "name": "Mouse Cursor",
-    "version": "1.0.6",
+    "version": "2.0.0",
     "namespace": "Manlaan.MouseCursor",
     "package": "MouseCursor.dll",
     "manifest_version": 1,
@@ -10,14 +10,15 @@
         "bh.blishhud": ">=0.10.0"
     },
     "url": "https://github.com/manlaan/BlishHud-MouseCursor",
-  "contributors": [
-    {
-        "name": "Manlaan",
-        "username": "manlaan.8921"
-    },
-    {
-      "name": "Nekres",
-      "username": "Nekres.1038"
-    }
-  ]
+    "contributors": [
+        {
+            "name": "Manlaan",
+            "username": "manlaan.8921"
+        },
+        {
+            "name": "Nekres",
+            "username": "Nekres.1038"
+        }
+    ],
+    "directories": [ "mousecursor" ]
 }

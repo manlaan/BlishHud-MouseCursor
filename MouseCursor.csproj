@@ -129,6 +129,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controls\DrawMouseCursor.cs" />
+    <Compile Include="Controls\MouceColor.cs" />
+    <Compile Include="Controls\MouseFile.cs" />
     <Compile Include="Module.cs" />
   </ItemGroup>
   <ItemGroup>
