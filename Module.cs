@@ -7,6 +7,7 @@ using Blish_HUD.Modules;
 using Blish_HUD.Modules.Managers;
 using Blish_HUD.Settings;
 using Blish_HUD.Graphics.UI;
+using Manlaan.MouseCursor.Models;
 using Manlaan.MouseCursor.Controls;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -70,14 +71,16 @@ namespace Manlaan.MouseCursor
             _settingMouseCursorOpacity.SetRange(0f, 1f);
         }
         public override IView GetSettingsView() {
-            return new MouseCursor.Controls.SettingsView();
+            return new MouseCursor.Views.SettingsView();
             //return new SettingsView( (this.ModuleParameters.SettingsManager.ModuleSettings);
         }
 
         protected override void Initialize()
         {
-            foreach (MouseColor color in MouseColors.Colors) {
-                _colors.Add( new Gw2Sharp.WebApi.V2.Models.Color() { Name = color.Name, Cloth = new Gw2Sharp.WebApi.V2.Models.ColorMaterial() { Rgb = color.RGB } } );
+            _mouseFiles = new List<MouseFile>();
+            _colors = new List<Gw2Sharp.WebApi.V2.Models.Color>();
+            foreach (KeyValuePair<string, int[]> color in MouseColors.Colors) {
+                _colors.Add( new Gw2Sharp.WebApi.V2.Models.Color() { Name = color.Key, Cloth = new Gw2Sharp.WebApi.V2.Models.ColorMaterial() { Rgb = color.Value } } );
             }
 
             _mouseImg = new DrawMouseCursor();
@@ -166,6 +169,8 @@ namespace Manlaan.MouseCursor
             _settingMouseCursorAboveBlish.SettingChanged -= UpdateMouseSettings_bool;
             Input.Mouse.RightMouseButtonPressed -= UpdateMousePos;
             _mouseImg?.Dispose();
+            _mouseFiles = null;
+            _colors = null;
             ModuleInstance = null;
         }
 
