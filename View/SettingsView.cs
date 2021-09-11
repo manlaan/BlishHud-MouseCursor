@@ -13,7 +13,7 @@ namespace Manlaan.MouseCursor.Controls
                             Parent = buildPanel,
                             Height = buildPanel.Height,
                             HeightSizingMode = SizingMode.AutoSize,
-                            Width = 700,  //bug? with buildPanel.Width changing to 40 after loading a different module settings and coming back.  buildPanel.Width,
+                            Width = 700,  //bug? with buildPanel.Width changing to 40 after loading a different module settings and coming back.,
             };
 
             Label cursorLabel = new Label() {
@@ -60,7 +60,6 @@ namespace Manlaan.MouseCursor.Controls
                 Parent = _parentPanel,
             };
             colorPicker.SelectedColorChanged += delegate {
-                colorBox.Color = colorPicker.SelectedColor;
                 colorBox.Color = colorPicker.SelectedColor;
                 Module._settingMouseCursorColor.Value = colorPicker.SelectedColor.Name;
                 colorPicker.Visible = false;
