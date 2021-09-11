@@ -1,11 +1,11 @@
 {
     "name": "Mouse Cursor",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "namespace": "Manlaan.MouseCursor",
     "package": "MouseCursor.dll",
     "manifest_version": 1,
 
-    "description": "Displays a custom image under your mouse pointer.",
+    "description": "Displays a custom image under your mouse pointer.\n\nMust use Blish 0.10.0-ci-195 or higher",
     "dependencies": {
         "bh.blishhud": ">=0.10.0"
     },

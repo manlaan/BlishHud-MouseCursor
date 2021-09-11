@@ -29,12 +29,13 @@ namespace Manlaan.MouseCursor.Controls
                 ZIndex = int.MaxValue;
             else
                 ZIndex = int.MinValue;
-            spriteBatch.DrawOnCtrl(this,
-                this.Texture,
-                new Rectangle(0, 0, Size.X, Size.Y),
-                null,
-                Tint
-                );
+            if (this.Texture != null)
+                spriteBatch.DrawOnCtrl(this,
+                    this.Texture,
+                    new Rectangle(0, 0, Size.X, Size.Y),
+                    null,
+                    Tint
+                    );
         }
 
     }

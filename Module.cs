@@ -2,11 +2,11 @@
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Blish_HUD;
-using Blish_HUD.Controls;
 using Blish_HUD.Input;
 using Blish_HUD.Modules;
 using Blish_HUD.Modules.Managers;
 using Blish_HUD.Settings;
+using Blish_HUD.Graphics.UI;
 using Manlaan.MouseCursor.Controls;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -14,7 +14,6 @@ using Microsoft.Xna.Framework.Graphics;
 using static Blish_HUD.GameService;
 using System.IO;
 using System.Collections.Generic;
-using Blish_HUD.Settings.UI.Views;
 
 namespace Manlaan.MouseCursor
 {
@@ -23,6 +22,7 @@ namespace Manlaan.MouseCursor
     {
 
         private static readonly Logger Logger = Logger.GetLogger<Module>();
+        internal static Module ModuleInstance;
 
         #region Service Managers
         internal SettingsManager SettingsManager => ModuleParameters.SettingsManager;
@@ -32,42 +32,60 @@ namespace Manlaan.MouseCursor
         #endregion
 
 
-        private SettingCollection _settingsHidden;
-        private SettingEntry<int> _settingMouseCursorSize;
-        private SettingEntry<int> _settingMouseCursorOpacity;
-        private SettingEntry<string> _settingMouseCursorImage;
-        private SettingEntry<string> _settingMouseCursorColor;
-        private SettingEntry<bool> _settingMouseCursorCameraDrag;
-        private SettingEntry<bool> _settingMouseCursorAboveBlish;
+        public static SettingCollection _settingsHidden;
+        public static SettingEntry<int> _settingMouseCursorSize;
+        public static SettingEntry<float> _settingMouseCursorOpacity;
+        public static SettingEntry<string> _settingMouseCursorImage;
+        public static SettingEntry<string> _settingMouseCursorColor;
+        public static SettingEntry<bool> _settingMouseCursorCameraDrag;
+        public static SettingEntry<bool> _settingMouseCursorAboveBlish;
         private DrawMouseCursor _mouseImg;
         private Point _mousePos = new Point(0, 0);
-        private WindowTab _moduleTab;
-        private List<MouseFile> _mouseFiles = new List<MouseFile>();
-        private List<Gw2Sharp.WebApi.V2.Models.Color> _colors = new List<Gw2Sharp.WebApi.V2.Models.Color>();
+        //private WindowTab _moduleTab;
+        public static List<MouseFile> _mouseFiles = new List<MouseFile>();
+        public static List<Gw2Sharp.WebApi.V2.Models.Color> _colors = new List<Gw2Sharp.WebApi.V2.Models.Color>();
+        
 
         [ImportingConstructor]
-        public Module([Import("ModuleParameters")] ModuleParameters moduleParameters) : base(moduleParameters) { }
+        public Module([Import("ModuleParameters")] ModuleParameters moduleParameters) : base(moduleParameters) { ModuleInstance = this;  }
 
         protected override void DefineSettings(SettingCollection settings)
         {
-            _settingsHidden = settings.AddSubCollection("Hidden");
-
-            _settingMouseCursorImage = _settingsHidden.DefineSetting("MouseCursorImage", "Circle Cyan.png");
-            _settingMouseCursorColor = _settingsHidden.DefineSetting("MouseCursorColor", "White0");
-            _settingMouseCursorSize = _settingsHidden.DefineSetting("MouseCursorSize", 70, "Size", "");
-            _settingMouseCursorOpacity = _settingsHidden.DefineSetting("MouseCursorOpacity", 100, "Opacity", "");
+            _settingMouseCursorImage = settings.DefineSetting("MouseCursorImage", "Circle Cyan.png");
+            _settingMouseCursorColor = settings.DefineSetting("MouseCursorColor", "White0");
+            _settingMouseCursorSize = settings.DefineSetting("MouseCursorSize", 70, "Size", "");
+            _settingMouseCursorOpacity = settings.DefineSetting("MouseCursorOpacity", 1.0f, "Opacity", "");
             _settingMouseCursorCameraDrag = settings.DefineSetting("MouseCursorCameraDrag", false, "Show When Camera Dragging", "Shows the cursor when you move the camera.");
             _settingMouseCursorAboveBlish = settings.DefineSetting("MouseCursorAboveBlish", false, "Show Above Blish Windows", "");
 
+            _settingMouseCursorImage.SettingChanged += UpdateMouseSettings_string;
+            _settingMouseCursorColor.SettingChanged += UpdateMouseSettings_string;
             _settingMouseCursorSize.SettingChanged += UpdateMouseSettings_int;
-            _settingMouseCursorOpacity.SettingChanged += UpdateMouseSettings_int;
+            _settingMouseCursorOpacity.SettingChanged += UpdateMouseSettings_float;
             _settingMouseCursorCameraDrag.SettingChanged += UpdateMouseSettings_bool;
             _settingMouseCursorAboveBlish.SettingChanged += UpdateMouseSettings_bool;
 
-            //_settingMouseCursorSize.SetRange(0, 200);
-            //_settingMouseCursorOpacity.SetRange(0f, 1f);
+
+            _settingMouseCursorSize.SetRange(0, 300);
+            _settingMouseCursorOpacity.SetRange(0f, 1f);
         }
+        public override IView GetSettingsView() {
+            return new MouseCursor.Controls.SettingsView();
+            //return new SettingsView( (this.ModuleParameters.SettingsManager.ModuleSettings);
+        }
+
         protected override void Initialize()
+        {
+            foreach (MouseColor color in MouseColors.Colors) {
+                _colors.Add( new Gw2Sharp.WebApi.V2.Models.Color() { Name = color.Name, Cloth = new Gw2Sharp.WebApi.V2.Models.ColorMaterial() { Rgb = color.RGB } } );
+            }
+
+            _mouseImg = new DrawMouseCursor();
+            _mouseImg.Parent = Graphics.SpriteScreen;
+
+            Input.Mouse.RightMouseButtonPressed += UpdateMousePos;
+        }
+        protected override async Task LoadAsync()
         {
             string[] mousefiles = {
                 "Circle Blue.png",
@@ -100,7 +118,7 @@ namespace Manlaan.MouseCursor
             string dailiesDirectory = DirectoriesManager.GetFullDirectoryPath("mousecursor");
             foreach (string file in Directory.GetFiles(dailiesDirectory, ".")) {
                 if (file.ToLower().Contains(".png")) {
-                    _mouseFiles.Add(new MouseFile() { File = file, Name = file.Substring(dailiesDirectory.Length + 1) } );
+                    _mouseFiles.Add(new MouseFile() { File = file, Name = file.Substring(dailiesDirectory.Length + 1) });
                 }
             }
             _mouseFiles.Sort(delegate (MouseFile x, MouseFile y) {
@@ -109,191 +127,16 @@ namespace Manlaan.MouseCursor
                 else if (y.Name == null) return 1;
                 else return x.Name.CompareTo(y.Name);
             });
-
-            foreach (MouseColor color in MouseColors.Colors) {
-                _colors.Add( new Gw2Sharp.WebApi.V2.Models.Color() { Name = color.Name, Cloth = new Gw2Sharp.WebApi.V2.Models.ColorMaterial() { Rgb = color.RGB } } );
-            }
-
-            _mouseImg = new DrawMouseCursor();
-            _mouseImg.Parent = Graphics.SpriteScreen;
-
-            UpdateMouseSettings_int();
-            UpdateMouseSettings_bool();
-            UpdateMouseSettings_string();
-
-            Input.Mouse.RightMouseButtonPressed += UpdateMousePos;
-        }
-        protected override async Task LoadAsync()
-        {
         }
         protected override void OnModuleLoaded(EventArgs e)
         {
-            Texture2D _pageIcon = ContentsManager.GetTexture("mousebw.png"); 
-            _moduleTab = Overlay.BlishHudWindow.AddTab("Mouse Cursor Settings", _pageIcon, BuildWindow());
+            UpdateMouseSettings_int();
+            UpdateMouseSettings_float();
+            UpdateMouseSettings_bool();
+            UpdateMouseSettings_string();
 
             base.OnModuleLoaded(e);
         }
-
-        private Panel BuildWindow() {
-            Panel _parentPanel = new Panel() {
-                CanScroll = false,
-                Size = Overlay.BlishHudWindow.ContentRegion.Size,
-            };
-
-            string imgFile;
-            if (_mouseFiles.Find(x => x.Name.Equals(_settingMouseCursorImage.Value)) == null) {
-                imgFile = "";
-            } else {
-                imgFile = _mouseFiles.Find(x => x.Name.Equals(_settingMouseCursorImage.Value)).File;
-            }
-            Gw2Sharp.WebApi.V2.Models.Color tintcolor = _colors.Find(x => x.Name.Equals(_settingMouseCursorColor.Value));
-            if (_colors.Find(x => x.Name.Equals(_settingMouseCursorColor.Value)) == null) {
-                tintcolor = _colors.Find(x => x.Name.Equals("White0"));
-            }
-
-            Image cursorImg = new Image() {
-                Size = new Point(_settingMouseCursorSize.Value, _settingMouseCursorSize.Value),
-                Texture = PremultiplyTexture(imgFile, GameService.Graphics.GraphicsDevice),
-                Tint = ToRGB(tintcolor),
-                Opacity = (float)_settingMouseCursorOpacity.Value / 100,
-                Parent = _parentPanel,
-            };
-            cursorImg.Location = new Point(_parentPanel.Right - 20 - cursorImg.Size.X, 20);
-
-            Label cursorLabel = new Label() {
-                Location = new Point(10, 15),
-                Width = 60,
-                AutoSizeHeight = false,
-                WrapText = false,
-                Parent = _parentPanel,
-                Text = "Cursor: ",
-            };
-            Dropdown cursorSelect = new Dropdown() {
-                Location = new Point(cursorLabel.Right + 8, cursorLabel.Top-5),
-                Width = 175,
-                Parent = _parentPanel,
-            };
-            foreach (var s in _mouseFiles) {
-                cursorSelect.Items.Add(s.Name);
-            }
-            cursorSelect.SelectedItem = _settingMouseCursorImage.Value;
-            cursorSelect.ValueChanged += delegate {
-                cursorImg.Texture = PremultiplyTexture(_mouseFiles.Find(x => x.Name.Equals(cursorSelect.SelectedItem)).File, GameService.Graphics.GraphicsDevice);
-            };
-
-            Label colorLabel = new Label() {
-                Location = new Point(10, cursorSelect.Bottom + 10),
-                Width = 60,
-                AutoSizeHeight = false,
-                WrapText = false,
-                Parent = _parentPanel,
-                Text = "Tint: ",
-            };
-            ColorBox colorBox = new ColorBox() {
-                Location = new Point(colorLabel.Right + 8, colorLabel.Top - 10),
-                Parent = _parentPanel,
-                Color = _colors.Find(x => x.Name.Equals(_settingMouseCursorColor.Value)),
-            };
-
-            Label sizeLabel = new Label() {
-                Location = new Point(10, colorBox.Bottom + 10),
-                Width = 60,
-                AutoSizeHeight = false,
-                WrapText = false,
-                Parent = _parentPanel,
-                Text = "Size: ",
-            };
-            TextBox sizeText = new TextBox() {
-                Location = new Point(sizeLabel.Right + 10, sizeLabel.Top - 5),
-                Width = 50,
-                Parent = _parentPanel,
-                Text = _settingMouseCursorSize.Value.ToString(),
-            };
-            sizeText.TextChanged += delegate {
-                int size = 0;
-                try {
-                    size = (string.IsNullOrEmpty(sizeText.Text)) ? 0 : int.Parse(sizeText.Text);
-                } catch { }
-                cursorImg.Size = new Point(size, size);
-                cursorImg.Location = new Point(_parentPanel.Right - 20 - cursorImg.Size.X, 20);
-            };
-            Label opacityLabel = new Label() {
-                Location = new Point(10, sizeText.Bottom + 10),
-                Width = 60,
-                AutoSizeHeight = false,
-                WrapText = false,
-                Parent = _parentPanel,
-                Text = "Opacity: ",
-            };
-            TextBox opacityText = new TextBox() {
-                Location = new Point(opacityLabel.Right + 10, opacityLabel.Top - 5),
-                Width = 50,
-                Parent = _parentPanel,
-                Text = _settingMouseCursorOpacity.Value.ToString(),
-            };
-            opacityText.TextChanged += delegate {
-                int opactiy = 100;
-                try {
-                    opactiy = (string.IsNullOrEmpty(opacityText.Text) || int.Parse(opacityText.Text) == null) ? 0 : int.Parse(opacityText.Text);
-                }
-                catch { }
-                cursorImg.Opacity = (float)(opactiy) / 100;
-            };
-            Label opacityLabelDesc = new Label() {
-                Location = new Point(opacityText.Right + 10, opacityLabel.Top),
-                Width = 75,
-                AutoSizeHeight = false,
-                WrapText = false,
-                Parent = _parentPanel,
-                Text = "(0 - 100)",
-            };
-
-            ColorPicker colorPicker = new ColorPicker() {
-                Location = new Point(colorBox.Right + 30, colorBox.Top),
-                CanScroll = true,
-                Size = new Point(260, 470),
-                Visible = false,
-                AssociatedColorBox = colorBox,
-                Parent = _parentPanel,
-            };
-            colorPicker.SelectedColorChanged += delegate {
-                colorBox.Color = colorPicker.SelectedColor;
-                cursorImg.Tint = ToRGB(colorPicker.SelectedColor);
-            };
-            foreach (var color in _colors) {
-                colorPicker.Colors.Add(color);
-            }
-            colorBox.Click += delegate { colorPicker.Visible = !colorPicker.Visible; };
-
-
-            StandardButton saveButton = new StandardButton() {
-                Text = "Save & Apply",
-                Size = new Point(110, 25),
-                Location = new Point(10, opacityText.Bottom+5),
-                Parent = _parentPanel,
-            };
-            saveButton.Click += delegate {
-                int size = 0;
-                try {
-                    size = (string.IsNullOrEmpty(sizeText.Text)) ? 0 : int.Parse(sizeText.Text);
-                }
-                catch { }
-                int opactiy = 100;
-                try {
-                    opactiy = (string.IsNullOrEmpty(opacityText.Text) || int.Parse(opacityText.Text) == null) ? 0 : int.Parse(opacityText.Text);
-                }
-                catch { }
-                _settingMouseCursorImage.Value = cursorSelect.SelectedItem;
-                _settingMouseCursorColor.Value = colorBox.Color.Name;
-                _settingMouseCursorOpacity.Value = opactiy;
-                _settingMouseCursorSize.Value = size;
-                UpdateMouseSettings_string();
-                UpdateMouseSettings_int();
-            };
-
-            return _parentPanel;
-        }
-
 
         protected override void Update(GameTime gameTime)
         {
@@ -315,19 +158,22 @@ namespace Manlaan.MouseCursor
         /// <inheritdoc />
         protected override void Unload()
         {
-            Overlay.BlishHudWindow.RemoveTab(_moduleTab);
+            _settingMouseCursorImage.SettingChanged -= UpdateMouseSettings_string;
+            _settingMouseCursorColor.SettingChanged -= UpdateMouseSettings_string;
             _settingMouseCursorSize.SettingChanged -= UpdateMouseSettings_int;
-            _settingMouseCursorOpacity.SettingChanged -= UpdateMouseSettings_int;
+            _settingMouseCursorOpacity.SettingChanged -= UpdateMouseSettings_float;
             _settingMouseCursorCameraDrag.SettingChanged -= UpdateMouseSettings_bool;
             _settingMouseCursorAboveBlish.SettingChanged -= UpdateMouseSettings_bool;
             Input.Mouse.RightMouseButtonPressed -= UpdateMousePos;
             _mouseImg?.Dispose();
+            ModuleInstance = null;
         }
 
-        private void UpdateMouseSettings_int(object sender = null, ValueChangedEventArgs<int> e = null)
-        {
+        private void UpdateMouseSettings_int(object sender = null, ValueChangedEventArgs<int> e = null) {
             _mouseImg.Size = new Point(_settingMouseCursorSize.Value, _settingMouseCursorSize.Value);
-            _mouseImg.Opacity = (float)(_settingMouseCursorOpacity.Value) / 100;
+        }
+        private void UpdateMouseSettings_float(object sender = null, ValueChangedEventArgs<float> e = null) {
+            _mouseImg.Opacity = (float)(_settingMouseCursorOpacity.Value);
         }
         private void UpdateMouseSettings_string(object sender = null, ValueChangedEventArgs<string> e = null) {
             MouseFile mouseFile = _mouseFiles.Find(x => x.Name.Equals(_settingMouseCursorImage.Value));

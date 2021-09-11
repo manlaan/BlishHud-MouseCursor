@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Manlaan.MouseCursor.Controls
 {
-    class MouseFile : IEquatable<MouseFile>, IComparable<MouseFile>
+    public class MouseFile : IEquatable<MouseFile>, IComparable<MouseFile>
     {
         public string Name { get; set; }
         public string File { get; set; }
