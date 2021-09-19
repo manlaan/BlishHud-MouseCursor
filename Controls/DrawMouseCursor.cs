@@ -28,7 +28,7 @@ namespace Manlaan.MouseCursor.Controls
             if (AboveBlish)
                 ZIndex = int.MaxValue;
             else
-                ZIndex = int.MinValue;
+                ZIndex = 0;
             if (this.Texture != null)
                 spriteBatch.DrawOnCtrl(this,
                     this.Texture,
