@@ -114,7 +114,7 @@ namespace Manlaan.MouseCursor.Views
                 Value = Module._settingMouseCursorOpacity.Value,
                 Parent = _parentPanel,
             };
-            sizeSlider.ValueChanged += delegate { Module._settingMouseCursorOpacity.Value = opacitySlider.Value; };
+            opacitySlider.ValueChanged += delegate { Module._settingMouseCursorOpacity.Value = opacitySlider.Value; };
 
             IView settingCameraDragView = SettingView.FromType(Module._settingMouseCursorCameraDrag, buildPanel.Width);
             ViewContainer _settingCameraDragContainer = new ViewContainer() {
