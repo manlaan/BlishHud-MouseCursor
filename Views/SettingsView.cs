@@ -109,12 +109,12 @@ namespace Manlaan.MouseCursor.Views
             TrackBar opacitySlider = new TrackBar() {
                 Location = new Point(opacityLabel.Right + 8, opacityLabel.Top),
                 Width = 250,
-                MaxValue = 1,
+                MaxValue = 100,
                 MinValue = 0,
-                Value = Module._settingMouseCursorOpacity.Value,
+                Value = Module._settingMouseCursorOpacity.Value * 100,
                 Parent = _parentPanel,
             };
-            opacitySlider.ValueChanged += delegate { Module._settingMouseCursorOpacity.Value = opacitySlider.Value; };
+            opacitySlider.ValueChanged += delegate { Module._settingMouseCursorOpacity.Value = opacitySlider.Value / 100; };
 
             IView settingCameraDragView = SettingView.FromType(Module._settingMouseCursorCameraDrag, buildPanel.Width);
             ViewContainer _settingCameraDragContainer = new ViewContainer() {
