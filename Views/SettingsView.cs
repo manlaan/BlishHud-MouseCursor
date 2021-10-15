@@ -38,7 +38,7 @@ namespace Manlaan.MouseCursor.Views
                 Location = new Point(15, 15),
                 Size = new Point(colorPickerPanel.Size.X - 35, colorPickerPanel.Size.Y - 30),
                 Parent = colorPickerPanel,
-                ShowTint = true,
+                BackgroundTexture = Module.ModuleInstance.ContentsManager.GetTexture("buttondark.png"),
                 ShowBorder = true,
             };
             colorPicker = new ColorPicker() {
