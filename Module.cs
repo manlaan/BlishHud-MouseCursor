@@ -40,6 +40,7 @@ namespace Manlaan.MouseCursor
         public static SettingEntry<string> _settingMouseCursorColor;
         public static SettingEntry<bool> _settingMouseCursorCameraDrag;
         public static SettingEntry<bool> _settingMouseCursorAboveBlish;
+        public static SettingEntry<bool> _settingMouseCursorOnlyCombat;
         private DrawMouseCursor _mouseImg;
         private Point _mousePos = new Point(0, 0);
         //private WindowTab _moduleTab;
@@ -58,6 +59,7 @@ namespace Manlaan.MouseCursor
             _settingMouseCursorOpacity = settings.DefineSetting("MouseCursorOpacity", 1.0f, "Opacity", "");
             _settingMouseCursorCameraDrag = settings.DefineSetting("MouseCursorCameraDrag", false, "Show When Camera Dragging", "Shows the cursor when you move the camera.");
             _settingMouseCursorAboveBlish = settings.DefineSetting("MouseCursorAboveBlish", false, "Show Above Blish Windows", "");
+            _settingMouseCursorOnlyCombat = settings.DefineSetting("MouseCursorOnlyCombat", false, "Only Show During Combat", "");
 
             _settingMouseCursorImage.SettingChanged += UpdateMouseSettings_string;
             _settingMouseCursorColor.SettingChanged += UpdateMouseSettings_string;
@@ -65,6 +67,7 @@ namespace Manlaan.MouseCursor
             _settingMouseCursorOpacity.SettingChanged += UpdateMouseSettings_float;
             _settingMouseCursorCameraDrag.SettingChanged += UpdateMouseSettings_bool;
             _settingMouseCursorAboveBlish.SettingChanged += UpdateMouseSettings_bool;
+            _settingMouseCursorOnlyCombat.SettingChanged += UpdateMouseSettings_bool;
 
 
             _settingMouseCursorSize.SetRange(0, 300);
@@ -144,6 +147,8 @@ namespace Manlaan.MouseCursor
         protected override void Update(GameTime gameTime)
         {
             _mouseImg.Visible = _settingMouseCursorCameraDrag.Value || !Input.Mouse.CameraDragging;
+            if (_mouseImg.Visible && _settingMouseCursorOnlyCombat.Value && !Gw2Mumble.PlayerCharacter.IsInCombat)
+                _mouseImg.Visible = false;
             if (Input.Mouse.State.RightButton != ButtonState.Pressed && _mouseImg.Visible)
             {
                 int x = Input.Mouse.Position.X - _settingMouseCursorSize.Value / 2;
@@ -167,6 +172,7 @@ namespace Manlaan.MouseCursor
             _settingMouseCursorOpacity.SettingChanged -= UpdateMouseSettings_float;
             _settingMouseCursorCameraDrag.SettingChanged -= UpdateMouseSettings_bool;
             _settingMouseCursorAboveBlish.SettingChanged -= UpdateMouseSettings_bool;
+            _settingMouseCursorOnlyCombat.SettingChanged -= UpdateMouseSettings_bool;
             Input.Mouse.RightMouseButtonPressed -= UpdateMousePos;
             _mouseImg?.Dispose();
             _mouseFiles = null;

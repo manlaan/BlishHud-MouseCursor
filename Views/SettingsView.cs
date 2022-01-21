@@ -144,10 +144,18 @@ namespace Manlaan.MouseCursor.Views
             IView settingAboveBlishView = SettingView.FromType(Module._settingMouseCursorAboveBlish, buildPanel.Width);
             ViewContainer _settingAboveBlishContainer = new ViewContainer() {
                 WidthSizingMode = SizingMode.Fill,
-                Location = new Point(10, _settingCameraDragContainer.Bottom+5),
+                Location = new Point(10, _settingCameraDragContainer.Bottom + 5),
                 Parent = parentPanel
             };
             _settingAboveBlishContainer.Show(settingAboveBlishView);
+
+            IView settingOnlyCombatView = SettingView.FromType(Module._settingMouseCursorOnlyCombat, buildPanel.Width);
+            ViewContainer _settingOnlyCombatContainer = new ViewContainer() {
+                WidthSizingMode = SizingMode.Fill,
+                Location = new Point(10, _settingAboveBlishContainer.Bottom + 5),
+                Parent = parentPanel
+            };
+            _settingOnlyCombatContainer.Show(settingOnlyCombatView);
         }
     }
 }
