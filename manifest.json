@@ -1,13 +1,13 @@
 {
     "name": "Mouse Cursor",
-    "version": "2.2.0",
+    "version": "2.3.0",
     "namespace": "Manlaan.MouseCursor",
     "package": "MouseCursor.dll",
     "manifest_version": 1,
 
     "description": "Displays a custom image under your mouse pointer.",
     "dependencies": {
-        "bh.blishhud": ">=0.11.4"
+        "bh.blishhud": ">=1.2.0"
     },
     "url": "https://github.com/manlaan/BlishHud-MouseCursor",
     "contributors": [
@@ -18,12 +18,17 @@
         {
             "name": "Nekres",
             "username": "Nekres.1038"
+        },
+        {
+            "name": "PhiPhire",
+            "username": "phiphire.9153"
         }
     ],
     "directories": [ "mousecursor" ]
 }
 /*
     "changelog": {
+        "2.3.0": "2025-03-01: Upgraded to Blish 1.2.0, added actioncam ,leftclick drag support and loading-/dialog-/character-screen detection"
         "2.2.0": "2022-01-20: Added option for Mouse during Combat"
         "2.1.4": "2021-10-15: Upgraded to Blish 0.11.1, fix size on color picker for 11.2"
     },

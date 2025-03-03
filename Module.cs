@@ -15,14 +15,13 @@ using Microsoft.Xna.Framework.Graphics;
 using static Blish_HUD.GameService;
 using System.IO;
 using System.Collections.Generic;
+using Blish_HUD.Debug;
 
 namespace Manlaan.MouseCursor
 {
     [Export(typeof(Blish_HUD.Modules.Module))]
     public class Module : Blish_HUD.Modules.Module
     {
-
-        private static readonly Logger Logger = Logger.GetLogger<Module>();
         internal static Module ModuleInstance;
 
         #region Service Managers
@@ -43,23 +42,23 @@ namespace Manlaan.MouseCursor
         public static SettingEntry<bool> _settingMouseCursorOnlyCombat;
         private DrawMouseCursor _mouseImg;
         private Point _mousePos = new Point(0, 0);
-        //private WindowTab _moduleTab;
+        private bool _inActionCam = false;
         public static List<MouseFile> _mouseFiles = new List<MouseFile>();
         public static List<Gw2Sharp.WebApi.V2.Models.Color> _colors = new List<Gw2Sharp.WebApi.V2.Models.Color>();
-        
+
 
         [ImportingConstructor]
-        public Module([Import("ModuleParameters")] ModuleParameters moduleParameters) : base(moduleParameters) { ModuleInstance = this;  }
+        public Module([Import("ModuleParameters")] ModuleParameters moduleParameters) : base(moduleParameters) { ModuleInstance = this; }
 
         protected override void DefineSettings(SettingCollection settings)
         {
             _settingMouseCursorImage = settings.DefineSetting("MouseCursorImage", "Circle Cyan.png");
             _settingMouseCursorColor = settings.DefineSetting("MouseCursorColor", "White0");
-            _settingMouseCursorSize = settings.DefineSetting("MouseCursorSize", 70, "Size", "");
-            _settingMouseCursorOpacity = settings.DefineSetting("MouseCursorOpacity", 1.0f, "Opacity", "");
-            _settingMouseCursorCameraDrag = settings.DefineSetting("MouseCursorCameraDrag", false, "Show When Camera Dragging", "Shows the cursor when you move the camera.");
-            _settingMouseCursorAboveBlish = settings.DefineSetting("MouseCursorAboveBlish", false, "Show Above Blish Windows", "");
-            _settingMouseCursorOnlyCombat = settings.DefineSetting("MouseCursorOnlyCombat", false, "Only Show During Combat", "");
+            _settingMouseCursorSize = settings.DefineSetting("MouseCursorSize", 70, () => "Size", () => "");
+            _settingMouseCursorOpacity = settings.DefineSetting("MouseCursorOpacity", 1.0f, () => "Opacity", () => "");
+            _settingMouseCursorCameraDrag = settings.DefineSetting("MouseCursorCameraDrag", false, () => "Show When Camera Dragging", () => "Shows the cursor when you move the camera.");
+            _settingMouseCursorAboveBlish = settings.DefineSetting("MouseCursorAboveBlish", false, () => "Show Above Blish Windows", () => "");
+            _settingMouseCursorOnlyCombat = settings.DefineSetting("MouseCursorOnlyCombat", false, () => "Only Show During Combat", () => "");
 
             _settingMouseCursorImage.SettingChanged += UpdateMouseSettings_string;
             _settingMouseCursorColor.SettingChanged += UpdateMouseSettings_string;
@@ -73,7 +72,8 @@ namespace Manlaan.MouseCursor
             _settingMouseCursorSize.SetRange(0, 300);
             _settingMouseCursorOpacity.SetRange(0f, 1f);
         }
-        public override IView GetSettingsView() {
+        public override IView GetSettingsView()
+        {
             return new MouseCursor.Views.SettingsView();
             //return new SettingsView( (this.ModuleParameters.SettingsManager.ModuleSettings);
         }
@@ -82,17 +82,18 @@ namespace Manlaan.MouseCursor
         {
             _mouseFiles = new List<MouseFile>();
             _colors = new List<Gw2Sharp.WebApi.V2.Models.Color>();
-            foreach (KeyValuePair<string, int[]> color in MouseColors.Colors) {
-                _colors.Add( new Gw2Sharp.WebApi.V2.Models.Color() { Name = color.Key, Cloth = new Gw2Sharp.WebApi.V2.Models.ColorMaterial() { Rgb = color.Value } } );
+            foreach (KeyValuePair<string, int[]> color in MouseColors.Colors)
+            {
+                _colors.Add(new Gw2Sharp.WebApi.V2.Models.Color() { Name = color.Key, Cloth = new Gw2Sharp.WebApi.V2.Models.ColorMaterial() { Rgb = color.Value } });
             }
 
             _mouseImg = new DrawMouseCursor();
             _mouseImg.Parent = Graphics.SpriteScreen;
 
-            Input.Mouse.RightMouseButtonPressed += UpdateMousePos;
         }
         protected override async Task LoadAsync()
         {
+            await base.LoadAsync();
             string[] mousefiles = {
                 "Circle Blue.png",
                 "Circle Cyan.png",
@@ -118,16 +119,20 @@ namespace Manlaan.MouseCursor
                 "Cross 5.png",
                 "mouse.psd",
             };
-            foreach (string file in mousefiles) {
+            foreach (string file in mousefiles)
+            {
                 ExtractFile(file);
             }
             string dailiesDirectory = DirectoriesManager.GetFullDirectoryPath("mousecursor");
-            foreach (string file in Directory.GetFiles(dailiesDirectory, ".")) {
-                if (file.ToLower().Contains(".png")) {
+            foreach (string file in Directory.GetFiles(dailiesDirectory, "."))
+            {
+                if (file.ToLower().Contains(".png"))
+                {
                     _mouseFiles.Add(new MouseFile() { File = file, Name = file.Substring(dailiesDirectory.Length + 1) });
                 }
             }
-            _mouseFiles.Sort(delegate (MouseFile x, MouseFile y) {
+            _mouseFiles.Sort(delegate (MouseFile x, MouseFile y)
+            {
                 if (x.Name == null && y.Name == null) return 0;
                 else if (x.Name == null) return -1;
                 else if (y.Name == null) return 1;
@@ -146,21 +151,37 @@ namespace Manlaan.MouseCursor
 
         protected override void Update(GameTime gameTime)
         {
-            _mouseImg.Visible = _settingMouseCursorCameraDrag.Value || !Input.Mouse.CameraDragging;
-            if (_mouseImg.Visible && _settingMouseCursorOnlyCombat.Value && !Gw2Mumble.PlayerCharacter.IsInCombat)
-                _mouseImg.Visible = false;
-            if (Input.Mouse.State.RightButton != ButtonState.Pressed && _mouseImg.Visible)
+            bool lrBtnPressed = Input.Mouse.CameraDragging || Input.Mouse.State.LeftButton == ButtonState.Pressed;
+            bool camIsDragged = !Input.Mouse.CursorIsVisible || lrBtnPressed;
+
+            // Need to track if we entered the action cam so we can ignore the use of left and right mousebutton
+            if (!_inActionCam && !Input.Mouse.CursorIsVisible && !lrBtnPressed) _inActionCam = true;
+            if (Input.Mouse.CursorIsVisible) _inActionCam = false;
+
+            Debug.OverlayTexts.TryAdd("RightButton.Pressed ", (GameTime _) => "RightButton     " + (Input.Mouse.State.RightButton == ButtonState.Pressed ? "Yes" : "No"));
+            Debug.OverlayTexts.TryAdd("LeftButton.Pressed  ", (GameTime _) => "LeftButton      " + (Input.Mouse.State.LeftButton == ButtonState.Pressed ? "Yes" : "No"));
+            Debug.OverlayTexts.TryAdd("CursorIsVisible     ", (GameTime _) => "CursorIsVisible " + (Input.Mouse.CursorIsVisible ? "Yes" : "No"));
+            Debug.OverlayTexts.TryAdd("CameraDragging      ", (GameTime _) => "CameraDragging  " + (Input.Mouse.CameraDragging ? "Yes" : "No"));
+            Debug.OverlayTexts.TryAdd("InActionCam         ", (GameTime _) => "InActionCam     " + (_inActionCam ? "Yes" : "No"));
+            // Only display if not in cutscene, loading screen, character selection or actioncam
+            _mouseImg.Visible = GameIntegration.Gw2Instance.IsInGame && GameIntegration.Gw2Instance.Gw2HasFocus && !_inActionCam;
+            // Check if show only in combat or if we are in combat
+            _mouseImg.Visible = _mouseImg.Visible && (!_settingMouseCursorOnlyCombat.Value || Gw2Mumble.PlayerCharacter.IsInCombat);
+            // Check if show when cam is dragged or we aren't dragging
+            _mouseImg.Visible = _mouseImg.Visible && (_settingMouseCursorCameraDrag.Value || !camIsDragged);
+
+            // Only update the position if the cam isn't dragged
+            if (Input.Mouse.CursorIsVisible)
             {
-                int x = Input.Mouse.Position.X - _settingMouseCursorSize.Value / 2;
-                int y = Input.Mouse.Position.Y - _settingMouseCursorSize.Value / 2;
-                _mouseImg.Location = new Point(x, y);
+                _mousePos.X = Input.Mouse.Position.X;
+                _mousePos.Y = Input.Mouse.Position.Y;
             }
-            else if (Input.Mouse.State.RightButton == ButtonState.Pressed && _mouseImg.Visible)
-            {
-                int x = _mousePos.X - _settingMouseCursorSize.Value / 2;
-                int y = _mousePos.Y - _settingMouseCursorSize.Value / 2;
-                _mouseImg.Location = new Point(x, y);
-            }
+
+            // Set the new postition
+            _mouseImg.Location = new Point(
+                _mousePos.X - _settingMouseCursorSize.Value / 2,
+                _mousePos.Y - _settingMouseCursorSize.Value / 2
+            );
         }
 
         /// <inheritdoc />
@@ -173,40 +194,46 @@ namespace Manlaan.MouseCursor
             _settingMouseCursorCameraDrag.SettingChanged -= UpdateMouseSettings_bool;
             _settingMouseCursorAboveBlish.SettingChanged -= UpdateMouseSettings_bool;
             _settingMouseCursorOnlyCombat.SettingChanged -= UpdateMouseSettings_bool;
-            Input.Mouse.RightMouseButtonPressed -= UpdateMousePos;
             _mouseImg?.Dispose();
             _mouseFiles = null;
             _colors = null;
             ModuleInstance = null;
         }
 
-        private void UpdateMouseSettings_int(object sender = null, ValueChangedEventArgs<int> e = null) {
+        private void UpdateMouseSettings_int(object sender = null, ValueChangedEventArgs<int> e = null)
+        {
             _mouseImg.Size = new Point(_settingMouseCursorSize.Value, _settingMouseCursorSize.Value);
         }
-        private void UpdateMouseSettings_float(object sender = null, ValueChangedEventArgs<float> e = null) {
+        private void UpdateMouseSettings_float(object sender = null, ValueChangedEventArgs<float> e = null)
+        {
             _mouseImg.Opacity = (float)(_settingMouseCursorOpacity.Value);
         }
-        private void UpdateMouseSettings_string(object sender = null, ValueChangedEventArgs<string> e = null) {
+        private void UpdateMouseSettings_string(object sender = null, ValueChangedEventArgs<string> e = null)
+        {
             MouseFile mouseFile = _mouseFiles.Find(x => x.Name.Equals(_settingMouseCursorImage.Value));
-            if (mouseFile == null || string.IsNullOrEmpty(mouseFile.File) || !File.Exists(mouseFile.File)) {
+            if (mouseFile == null || string.IsNullOrEmpty(mouseFile.File) || !File.Exists(mouseFile.File))
+            {
                 _mouseImg.Texture = ContentsManager.GetTexture("Circle Cyan.png");
             }
-            else {
-                _mouseImg.Texture = PremultiplyTexture(mouseFile.File, GameService.Graphics.GraphicsDevice);
+            else
+            {
+                using (var gd = GameService.Graphics.LendGraphicsDeviceContext())
+                {
+                    _mouseImg.Texture = PremultiplyTexture(mouseFile.File, gd.GraphicsDevice);
+                }
             }
             _mouseImg.Tint = ToRGB(_colors.Find(x => x.Name.Equals(_settingMouseCursorColor.Value)));
         }
-        private void UpdateMouseSettings_bool(object sender = null, ValueChangedEventArgs<bool> e = null) {
+        private void UpdateMouseSettings_bool(object sender = null, ValueChangedEventArgs<bool> e = null)
+        {
             _mouseImg.AboveBlish = _settingMouseCursorAboveBlish.Value;
         }
-        private void UpdateMousePos(object sender, MouseEventArgs e)
+        private void ExtractFile(string filePath)
         {
-            _mousePos = Input.Mouse.Position;
-        }
-        private void ExtractFile(string filePath) {
             var fullPath = Path.Combine(DirectoriesManager.GetFullDirectoryPath("mousecursor"), filePath);
             //if (File.Exists(fullPath)) return;
-            using (var fs = ContentsManager.GetFileStream(filePath)) {
+            using (var fs = ContentsManager.GetFileStream(filePath))
+            {
                 fs.Position = 0;
                 byte[] buffer = new byte[fs.Length];
                 var content = fs.Read(buffer, 0, (int)fs.Length);
@@ -214,10 +241,12 @@ namespace Manlaan.MouseCursor
                 File.WriteAllBytes(fullPath, buffer);
             }
         }
-        private Texture2D PremultiplyTexture(String FilePath, GraphicsDevice device) {
+        private Texture2D PremultiplyTexture(String FilePath, GraphicsDevice device)
+        {
             Texture2D texture;
 
-            try {
+            try
+            {
                 FileStream titleStream = File.OpenRead(FilePath);
                 texture = Texture2D.FromStream(device, titleStream);
                 titleStream.Close();
@@ -227,14 +256,16 @@ namespace Manlaan.MouseCursor
                     buffer[i] = Color.FromNonPremultiplied(buffer[i].R, buffer[i].G, buffer[i].B, buffer[i].A);
                 texture.SetData(buffer);
             }
-            catch {
+            catch
+            {
                 texture = ContentsManager.GetTexture("Circle Cyan.png");
             }
             return texture;
         }
-        private Color ToRGB(Gw2Sharp.WebApi.V2.Models.Color color) {
+        private Color ToRGB(Gw2Sharp.WebApi.V2.Models.Color color)
+        {
             if (color == null)
-                return new Color(255,255,255);
+                return new Color(255, 255, 255);
             else
                 return new Color(color.Cloth.Rgb[0], color.Cloth.Rgb[1], color.Cloth.Rgb[2]);
         }
