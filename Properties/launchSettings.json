@@ -1,0 +1,17 @@
+{
+    "profiles": {
+      "BlishHUD.MouseCursor": {
+        "commandName": "Project"
+      },
+      "Blish HUD": {
+        "commandName": "Executable",
+        "executablePath": "C:/Program Files (x86)/Blish HUD/Blish HUD.exe",
+        "commandLineArgs": "--debug --module \"${workspaceFolder}/bin/x64/Debug/net48/MouseCursor.bhm\" --settings \"${workspaceFolder}/.log/blishhud debug\""
+      },
+      "Blish HUD PS": {
+        "commandName": "Executable",
+        "executablePath": "C:/Program Files (x86)/Blish HUD/Blish HUD.exe",
+        "commandLineArgs": "--debug --module \"${workspaceFolder}/bin/x64/Debug/net48/MouseCursor.bhm\" --settings \"${workspaceFolder}/.log/blishhud debug\" --process WindowsTerminal --window \"Windows PowerShell\" "
+      }
+    }
+  }
