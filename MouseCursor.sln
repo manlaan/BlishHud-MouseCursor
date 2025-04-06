@@ -7,14 +7,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MouseCursor", "MouseCursor.
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|x64 = Debug|x64
-		Release|x64 = Release|x64
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{EE87195F-DD73-4DD3-95D6-41516931DD68}.Debug|x64.ActiveCfg = Debug|x64
-		{EE87195F-DD73-4DD3-95D6-41516931DD68}.Debug|x64.Build.0 = Debug|x64
-		{EE87195F-DD73-4DD3-95D6-41516931DD68}.Release|x64.ActiveCfg = Release|x64
-		{EE87195F-DD73-4DD3-95D6-41516931DD68}.Release|x64.Build.0 = Release|x64
+		{EE87195F-DD73-4DD3-95D6-41516931DD68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE87195F-DD73-4DD3-95D6-41516931DD68}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE87195F-DD73-4DD3-95D6-41516931DD68}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE87195F-DD73-4DD3-95D6-41516931DD68}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
