@@ -1,3 +1,7 @@
 {
-    "dotnet.preferCSharpExtension": false
+    "dotnet.preferCSharpExtension": false,
+    "cSpell.words": [
+        "Blish",
+        "Manlaan"
+    ]
 }
