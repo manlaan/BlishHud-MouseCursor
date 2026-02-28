@@ -136,8 +136,7 @@ namespace Manlaan.MouseCursor
         public enum ClipMode
         {
             Never,
-            Combat,
-            Always
+            Always,
         }
         public enum ShowMode
         {
@@ -145,9 +144,6 @@ namespace Manlaan.MouseCursor
             Always,
             Dragging,
             NotDragging,
-            Combat,
-            CombatDraging,
-            CombatNotDragging,
         }
 
 
@@ -171,8 +167,10 @@ namespace Manlaan.MouseCursor
         public static SettingEntry<bool> _settingMouseCursorAboveBlish;
         public static SettingEntry<ShowMode> _settingMouseCursorShow;
         public static SettingEntry<ClipMode> _settingMouseCursorClip;
-        public static SettingEntry<bool> _settingMouseCursorFreezeAfterDrag;
-        public static SettingEntry<float> _settingMouseCursorFreezeAfterDragPeriod;
+        public static SettingEntry<ShowMode> _settingMouseCursorShowCombat;
+        public static SettingEntry<ClipMode> _settingMouseCursorClipCombat;
+        public static SettingEntry<bool> _settingMouseCursorFreezeCursor;
+        public static SettingEntry<float> _settingMouseCursorFreezeCursorPeriod;
         public static List<MouseFile> _mouseFiles = new List<MouseFile>();
         public static List<Gw2Sharp.WebApi.V2.Models.Color> _colors = new List<Gw2Sharp.WebApi.V2.Models.Color>();
         #endregion
@@ -198,16 +196,18 @@ namespace Manlaan.MouseCursor
 
         protected override void DefineSettings(SettingCollection settings)
         {
-            _settingMouseCursorImage = settings.DefineSetting("MouseCursorImage", "Circle Cyan.png");
-            _settingMouseCursorColor = settings.DefineSetting("MouseCursorColor", "White0");
-            _settingMouseCursorSize = settings.DefineSetting("MouseCursorSize", 70, () => "Size", () => "");
-            _settingMouseCursorOpacity = settings.DefineSetting("MouseCursorOpacity", 1.0f, () => "Opacity", () => "");
+            _settingMouseCursorImage = settings.DefineSetting("MouseCursorImage", "Circle Cyan.png", () => "");
+            _settingMouseCursorColor = settings.DefineSetting("MouseCursorColor", "White0", () => "");
+            _settingMouseCursorSize = settings.DefineSetting("MouseCursorSize", 70, () => "Size");
+            _settingMouseCursorOpacity = settings.DefineSetting("MouseCursorOpacity", 1.0f, () => "Opacity");
             _settingMouseCursorCameraDrag = settings.DefineSetting("MouseCursorCameraDrag", false, () => "Show When Camera Dragging", () => "Shows the cursor when you move the camera.");
-            _settingMouseCursorAboveBlish = settings.DefineSetting("MouseCursorAboveBlish", false, () => "Show Above Blish Windows", () => "");
-            _settingMouseCursorShow = settings.DefineSetting("MouseCursorShow", ShowMode.Never, () => "Show Only", () => "");
-            _settingMouseCursorClip = settings.DefineSetting("MouseCursorClip", ClipMode.Never, () => "Clip Cursor To GameWindow", () => "");
-            _settingMouseCursorFreezeAfterDrag = settings.DefineSetting("MouseCursorCenterAfterDrag", false, () => "Freeze Cursor After Drag", () => "");
-            _settingMouseCursorFreezeAfterDragPeriod = settings.DefineSetting("MouseCursorFreezePeriod", 2f, () => "Freeze Time", () => $"{_settingMouseCursorFreezeAfterDragPeriod.Value:0} ms");
+            _settingMouseCursorAboveBlish = settings.DefineSetting("MouseCursorAboveBlish", false, () => "Show Above Blish Windows");
+            _settingMouseCursorShow = settings.DefineSetting("MouseCursorShow", ShowMode.Never, () => "");
+            _settingMouseCursorShowCombat = settings.DefineSetting("MouseCursorShowCombat", ShowMode.Never, () => "");
+            _settingMouseCursorClip = settings.DefineSetting("MouseCursorClip", ClipMode.Never, () => "");
+            _settingMouseCursorClipCombat = settings.DefineSetting("MouseCursorClipCombat", ClipMode.Never, () => "");
+            _settingMouseCursorFreezeCursor = settings.DefineSetting("MouseCursorCenterAfterDrag", false, () => "Freeze Cursor After Dragging");
+            _settingMouseCursorFreezeCursorPeriod = settings.DefineSetting("MouseCursorFreezePeriod", 2f, () => "", () => $"{_settingMouseCursorFreezeCursorPeriod.Value:0} ms");
 
             _settingMouseCursorImage.SettingChanged += UpdateMouseCursorSettingsCursorImageNColor;
             _settingMouseCursorColor.SettingChanged += UpdateMouseCursorSettingsCursorImageNColor;
@@ -217,13 +217,12 @@ namespace Manlaan.MouseCursor
 
             _settingMouseCursorSize.SetRange(0, 300);
             _settingMouseCursorOpacity.SetRange(0f, 1f);
-            _settingMouseCursorFreezeAfterDragPeriod.SetRange(1f, 500f);
+            _settingMouseCursorFreezeCursorPeriod.SetRange(1f, 500f);
         }
 
         public override IView GetSettingsView()
         {
-            return new MouseCursor.Views.SettingsView();
-            //return new SettingsView( (this.ModuleParameters.SettingsManager.ModuleSettings);
+            return new Views.SettingsView();
         }
 
         protected override void Initialize()
@@ -301,14 +300,14 @@ namespace Manlaan.MouseCursor
 
         protected override void Update(GameTime gameTime)
         {
-            Logger.Debug($"==============================================================================");
+            // Logger.Debug($"==============================================================================");
             UpdateCursorState(gameTime);
             UpdateCursorClipping();
             UpdateCursorFreeze(gameTime);
 
             UpdateCursorImg();
             _lastMouseState = Mouse.GetState();
-            Logger.Debug($"======================================END=====================================");
+            // Logger.Debug($"======================================END=====================================");
         }
 
         private void UpdateCursorState(GameTime gt)
@@ -337,15 +336,15 @@ namespace Manlaan.MouseCursor
             _cursorVelChanged = (cursorVel - _cursorVel) < 1e-9;
             _cursorVel = cursorVel;
 
-            Logger.Debug($"_cursorVisChanged         {_cursorVisChanged}");
-            Logger.Debug($"_cursorVis                {_cursorVis}");
-            Logger.Debug($"_camDraggedChanged        {_camDraggedChanged}");
-            Logger.Debug($"_camDragged               {_camDragged}");
-            Logger.Debug($"_inActionCamChanged       {_inActionCamChanged}");
-            Logger.Debug($"_inActionCam              {_inActionCam}");
-            Logger.Debug($"WForms.Cursor.Clip        {WForms.Cursor.Clip}");
-            Logger.Debug($"clientToScr               {WinApi.ClientToScreen(GameIntegration.Gw2Instance.Gw2WindowHandle)}");
-            Logger.Debug($"clientRect                {WinApi.GetClientRect(GameIntegration.Gw2Instance.Gw2WindowHandle)}");
+            // Logger.Debug($"_cursorVisChanged         {_cursorVisChanged}");
+            // Logger.Debug($"_cursorVis                {_cursorVis}");
+            // Logger.Debug($"_camDraggedChanged        {_camDraggedChanged}");
+            // Logger.Debug($"_camDragged               {_camDragged}");
+            // Logger.Debug($"_inActionCamChanged       {_inActionCamChanged}");
+            // Logger.Debug($"_inActionCam              {_inActionCam}");
+            // Logger.Debug($"WForms.Cursor.Clip        {WForms.Cursor.Clip}");
+            // Logger.Debug($"clientToScr               {WinApi.ClientToScreen(GameIntegration.Gw2Instance.Gw2WindowHandle)}");
+            // Logger.Debug($"clientRect                {WinApi.GetClientRect(GameIntegration.Gw2Instance.Gw2WindowHandle)}");
         }
 
         private void UpdateCursorImg()
@@ -353,16 +352,24 @@ namespace Manlaan.MouseCursor
             // Only display if not in cutscene, loading screen, character selection or actioncam
             _mouseImg.Visible = GameIntegration.Gw2Instance.Gw2HasFocus && GameIntegration.Gw2Instance.IsInGame && !_inActionCam;
             // Check if show only in combat or if we are in combat
-            _mouseImg.Visible = _mouseImg.Visible && _settingMouseCursorShow.Value != ShowMode.Never &&
+            _mouseImg.Visible = _mouseImg.Visible &&
                 (
-                    (_settingMouseCursorShow.Value == ShowMode.Always) ||
-                    (_settingMouseCursorShow.Value == ShowMode.Dragging && _camDragged) ||
-                    (_settingMouseCursorShow.Value == ShowMode.NotDragging && !_camDragged) ||
-                    (_settingMouseCursorShow.Value == ShowMode.Combat && Gw2Mumble.PlayerCharacter.IsInCombat) ||
-                    (_settingMouseCursorShow.Value == ShowMode.CombatDraging && _camDragged && Gw2Mumble.PlayerCharacter.IsInCombat) ||
-                    (_settingMouseCursorShow.Value == ShowMode.CombatNotDragging && !_camDragged && Gw2Mumble.PlayerCharacter.IsInCombat) ||
-                    false
-                // (_settingMouseCursorShow.Value == ShowMode.DraggingCombat && Gw2Mumble.PlayerCharacter.IsInCombat && _camDragged)
+                    (
+                        !Gw2Mumble.PlayerCharacter.IsInCombat &&
+                        (
+                            (_settingMouseCursorShow.Value == ShowMode.Always) ||
+                            (_settingMouseCursorShow.Value == ShowMode.Dragging && _camDragged) ||
+                            (_settingMouseCursorShow.Value == ShowMode.NotDragging && !_camDragged)
+                        )
+                    ) ||
+                    (
+                        Gw2Mumble.PlayerCharacter.IsInCombat &&
+                        (
+                            (_settingMouseCursorShowCombat.Value == ShowMode.Always) ||
+                            (_settingMouseCursorShowCombat.Value == ShowMode.Dragging && _camDragged) ||
+                            (_settingMouseCursorShowCombat.Value == ShowMode.NotDragging && !_camDragged)
+                        )
+                    )
                 );
 
             if (_cursorVis) _mouseImg.Location = new Point(
@@ -383,7 +390,7 @@ namespace Manlaan.MouseCursor
         {
             // Check if the cursor should be frozen after dragging and if dragging is stopped
             _freezeCursor = ((_camDraggedChanged && !_camDragged && !_inActionCam) || (_inActionCamChanged && !_inActionCam)) ?
-                _settingMouseCursorFreezeAfterDrag.Value :
+                _settingMouseCursorFreezeCursor.Value :
                 _freezeCursor;
             _freezeStart = ((_camDraggedChanged && !_camDragged && !_inActionCam) || (_inActionCamChanged && !_inActionCam)) ?
                 gameTime.TotalGameTime :
@@ -393,17 +400,17 @@ namespace Manlaan.MouseCursor
                 new Point(Mouse.GetState().Position.X, Mouse.GetState().Position.Y) :
                 _freezeStartPoint;
 
-            Logger.Debug($"_freezeCursor              {_freezeCursor}");
-            Logger.Debug($"updateFreezeStartPoint     {(_camDraggedChanged && _camDragged && !_inActionCamChanged) || (_inActionCamChanged && _inActionCam && !_camDraggedChanged)}");
-            Logger.Debug($"_freezeStartPoint          {_freezeStartPoint}");
-            Logger.Debug($"Mouse.GetState().Position  {Mouse.GetState().Position}");
-            Logger.Debug($"_mouseImg.Location         {_mouseImg.Location}");
-            Logger.Debug($"_settingMouseCursorSize    {_settingMouseCursorSize.Value}");
+            // Logger.Debug($"_freezeCursor              {_freezeCursor}");
+            // Logger.Debug($"updateFreezeStartPoint     {(_camDraggedChanged && _camDragged && !_inActionCamChanged) || (_inActionCamChanged && _inActionCam && !_camDraggedChanged)}");
+            // Logger.Debug($"_freezeStartPoint          {_freezeStartPoint}");
+            // Logger.Debug($"Mouse.GetState().Position  {Mouse.GetState().Position}");
+            // Logger.Debug($"_mouseImg.Location         {_mouseImg.Location}");
+            // Logger.Debug($"_settingMouseCursorSize    {_settingMouseCursorSize.Value}");
 
             if (_freezeCursor)
             {
                 double frozenFor = gameTime.TotalGameTime.Subtract(_freezeStart).TotalMilliseconds;
-                if (frozenFor > _settingMouseCursorFreezeAfterDragPeriod.Value ||
+                if (frozenFor > _settingMouseCursorFreezeCursorPeriod.Value ||
                     !GameIntegration.Gw2Instance.IsInGame ||
                     !GameIntegration.Gw2Instance.Gw2HasFocus
                 ) _freezeCursor = false;
@@ -425,9 +432,9 @@ namespace Manlaan.MouseCursor
                         _shouldClip ? clientRect.GetValueOrDefault().Height :
                             0
                 );
-                Logger.Debug($"   CurrentFreezeTime       {frozenFor}");
-                Logger.Debug($"   _freezeCursor           {_freezeCursor}");
-                Logger.Debug($"   WForms.Cursor.Clip      {WForms.Cursor.Clip}");
+                // Logger.Debug($"   CurrentFreezeTime       {frozenFor}");
+                // Logger.Debug($"   _freezeCursor           {_freezeCursor}");
+                // Logger.Debug($"   WForms.Cursor.Clip      {WForms.Cursor.Clip}");
             }
         }
 
@@ -439,33 +446,39 @@ namespace Manlaan.MouseCursor
                 // We already restrict the cursor with tighter bounds
                 !_freezeCursor &&
                 // Check if if there's a need to clip the cursor
-                GameIntegration.Gw2Instance.IsInGame &&
-                GameIntegration.Gw2Instance.Gw2HasFocus &&
+                GameIntegration.Gw2Instance.IsInGame && GameIntegration.Gw2Instance.Gw2HasFocus &&
                 // Check if we want to clip the cursor
-                _settingMouseCursorClip.Value != ClipMode.Never &&
-                // Don't clip only during combat or we're in combat
                 (
-                    _settingMouseCursorClip.Value != ClipMode.Combat ||
-                    Gw2Mumble.PlayerCharacter.IsInCombat ||
-                    _inActionCam ||
-                    _camDragged
-                ) &&
-                // Only clip cursor if it is in the clipping area
-                clientRect.GetValueOrDefault().Contains(Mouse.GetState().Position.X, Mouse.GetState().Position.Y);
+                    _inActionCam || _camDragged ||
+                    (
+                        !Gw2Mumble.PlayerCharacter.IsInCombat &&
+                        (
+                            _settingMouseCursorClip.Value == ClipMode.Always
+                        )
+                    ) ||
+                    (
+                        Gw2Mumble.PlayerCharacter.IsInCombat &&
+                        (
+                            _settingMouseCursorClipCombat.Value == ClipMode.Always
+                        )
+                    )
+                );
+            // Only clip cursor if it is in the clipping area
+            clientRect.GetValueOrDefault().Contains(Mouse.GetState().Position.X, Mouse.GetState().Position.Y);
 
             bool shouldClipChanged = _shouldClip != shouldClip;
             _shouldClip = shouldClip;
 
             if (shouldClipChanged || (_cursorVisChanged && _cursorVis))
             {
-                Logger.Debug($"    Clip? {_shouldClip}");
+                // Logger.Debug($"    Clip? {_shouldClip}");
                 WForms.Cursor.Clip = new System.Drawing.Rectangle(
                     _shouldClip ? clientToScr.GetValueOrDefault().X : 0,
                     _shouldClip ? clientToScr.GetValueOrDefault().Y : 0,
                     _shouldClip ? clientRect.GetValueOrDefault().Width : 0,
                     _shouldClip ? clientRect.GetValueOrDefault().Height : 0
                 );
-                Logger.Debug($"    WForms.Cursor.Clip {WForms.Cursor.Clip}");
+                // Logger.Debug($"    WForms.Cursor.Clip {WForms.Cursor.Clip}");
             }
 
             // Logger.Debug($"End Setting cursor clip to {WForms.Cursor.Clip}");

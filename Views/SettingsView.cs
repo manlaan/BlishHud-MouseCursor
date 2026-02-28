@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Blish_HUD.Settings.UI.Views;
 using Blish_HUD.Graphics.UI;
 using System;
+using Blish_HUD.Settings;
 
 
 namespace Manlaan.MouseCursor.Views
@@ -12,6 +13,7 @@ namespace Manlaan.MouseCursor.Views
         Panel colorPickerPanel;
         ColorPicker colorPicker;
         ColorBox colorBox;
+        private static readonly Blish_HUD.Logger Logger = Blish_HUD.Logger.GetLogger<SettingsView>();
 
         protected override void Build(Container buildPanel)
         {
@@ -21,7 +23,7 @@ namespace Manlaan.MouseCursor.Views
                 Parent = buildPanel,
                 Height = buildPanel.Height,
                 HeightSizingMode = SizingMode.AutoSize,
-                Width = 700,  //bug? with buildPanel.Width changing to 40 after loading a different module settings and coming back.,
+                Width = buildPanel.Width,  //bug? with buildPanel.Width changing to 40 after loading a different module settings and coming back.,
             };
             parentPanel.LeftMouseButtonPressed += delegate
             {
@@ -31,7 +33,7 @@ namespace Manlaan.MouseCursor.Views
 
             colorPickerPanel = new Panel()
             {
-                Location = new Point(parentPanel.Width - 420 - 10, 10),
+                Location = new Point(parentPanel.Width - 420, 10),
                 Size = new Point(420, 255),
                 Visible = false,
                 ZIndex = 10,
@@ -73,11 +75,11 @@ namespace Manlaan.MouseCursor.Views
                 AutoSizeHeight = false,
                 WrapText = false,
                 Parent = parentPanel,
-                Text = "Cursor: ",
+                Text = "Image: ",
             };
             Dropdown cursorSelect = new Dropdown()
             {
-                Location = new Point(cursorLabel.Right + 8, cursorLabel.Top - 5),
+                Location = new Point(cursorLabel.Right + 5, cursorLabel.Top - 5),
                 Width = 175,
                 Parent = parentPanel,
             };
@@ -87,25 +89,15 @@ namespace Manlaan.MouseCursor.Views
             {
                 Module._settingMouseCursorImage.Value = cursorSelect.SelectedItem;
             };
-            Control prevContainer = cursorSelect;
-
-            Label colorLabel = new Label()
-            {
-                Location = new Point(10, prevContainer.Bottom + 15),
-                Width = 60,
-                AutoSizeHeight = false,
-                WrapText = false,
-                Parent = parentPanel,
-                Text = "Tint: ",
-            };
             colorBox = new ColorBox()
             {
-                Location = new Point(colorLabel.Right + 8, colorLabel.Top - 10),
+                Location = new Point(cursorSelect.Right + 5, cursorSelect.Top),
                 Parent = parentPanel,
+                Size = new Point(cursorSelect.Bottom - cursorSelect.Top),
                 Color = Module._colors.Find(x => x.Name.Equals(Module._settingMouseCursorColor.Value)),
             };
             colorBox.Click += delegate { colorPickerPanel.Visible = !colorPickerPanel.Visible; };
-            prevContainer = colorLabel;
+            Control prevContainer = cursorLabel;
 
             Label sizeLabel = new Label()
             {
@@ -114,11 +106,11 @@ namespace Manlaan.MouseCursor.Views
                 AutoSizeHeight = false,
                 WrapText = false,
                 Parent = parentPanel,
-                Text = "Size: ",
+                Text = "Size:",
             };
             TrackBar sizeSlider = new TrackBar()
             {
-                Location = new Point(sizeLabel.Right + 8, sizeLabel.Top),
+                Location = new Point(sizeLabel.Right + 5, sizeLabel.Top + 2),
                 Width = 250,
                 MaxValue = 250,
                 MinValue = 0,
@@ -130,16 +122,16 @@ namespace Manlaan.MouseCursor.Views
 
             Label opacityLabel = new Label()
             {
-                Location = new Point(10, prevContainer.Bottom + 7),
+                Location = new Point(10, prevContainer.Bottom + 5),
                 Width = 60,
                 AutoSizeHeight = false,
                 WrapText = false,
                 Parent = parentPanel,
-                Text = "Opacity: ",
+                Text = "Opacity:",
             };
             TrackBar opacitySlider = new TrackBar()
             {
-                Location = new Point(opacityLabel.Right + 8, opacityLabel.Top),
+                Location = new Point(opacityLabel.Right + 5, opacityLabel.Top + 2),
                 Width = 250,
                 MaxValue = 100,
                 MinValue = 0,
@@ -149,71 +141,64 @@ namespace Manlaan.MouseCursor.Views
             opacitySlider.ValueChanged += delegate { Module._settingMouseCursorOpacity.Value = opacitySlider.Value / 100; };
             prevContainer = opacityLabel;
 
-            IView settingAboveBlishView = SettingView.FromType(Module._settingMouseCursorAboveBlish, buildPanel.Width);
             ViewContainer _settingAboveBlishContainer = new ViewContainer()
             {
                 WidthSizingMode = SizingMode.Fill,
                 Location = new Point(10, prevContainer.Bottom + 5),
                 Parent = parentPanel
             };
+            IView settingAboveBlishView = SettingView.FromType(Module._settingMouseCursorAboveBlish, _settingAboveBlishContainer.Width);
             _settingAboveBlishContainer.Show(settingAboveBlishView);
             prevContainer = _settingAboveBlishContainer;
 
-            // IView settingCameraDragView = SettingView.FromType(Module._settingMouseCursorCameraDrag, buildPanel.Width);
-            // ViewContainer _settingCameraDragContainer = new ViewContainer()
-            // {
-            //     WidthSizingMode = SizingMode.Fill,
-            //     Location = new Point(10, prevContainer.Bottom + 5),
-            //     Parent = parentPanel
-            // };
-            // _settingCameraDragContainer.Show(settingCameraDragView);
-            // prevContainer = _settingCameraDragContainer;
+            // 
+            // 
+            //                  Show Cursor Img and Clip Settings
+            // 
+            // 
 
-            // IView settingOnlyCombatView = SettingView.FromType(Module._settingMouseCursorShow, buildPanel.Width);
-            // ViewContainer _settingOnlyCombatContainer = new ViewContainer()
-            // {
-            //     WidthSizingMode = SizingMode.Fill,
-            //     Location = new Point(10, prevContainer.Bottom + 5),
-            //     Parent = parentPanel
-            // };
-            // _settingOnlyCombatContainer.Show(settingOnlyCombatView);
-            // prevContainer = _settingOnlyCombatContainer;
-
-            // IView settingCursorClipView = SettingView.FromType(Module._settingMouseCursorClip, buildPanel.Width);
-            // ViewContainer _settingCursorClipContainer = new ViewContainer()
-            // {
-            //     WidthSizingMode = SizingMode.Fill,
-            //     Location = new Point(10, prevContainer.Bottom + 5),
-            //     Parent = parentPanel,
-
-            // };
-            // _settingCursorClipContainer.Show(settingCursorClipView);
-            // prevContainer = _settingCursorClipContainer;
-
-
-            // IView settingCursorClipOnlyCombatView = SettingView.FromType(Module._settingMouseCursorClipOnlyCombat, buildPanel.Width);
-            // ViewContainer _settingCursorClipOnlyCombatContainer = new ViewContainer()
-            // {
-            //     WidthSizingMode = SizingMode.Fill,
-            //     Location = new Point(10, prevContainer.Bottom + 5),
-            //     Parent = parentPanel,
-            // };
-            // _settingCursorClipOnlyCombatContainer.Show(settingCursorClipOnlyCombatView);
-            // prevContainer = _settingCursorClipOnlyCombatContainer;
-
-            Label cursorShowLabel = new Label()
+            Label cursorClipShowHeader0Label = new Label()
             {
-                Location = new Point(10, prevContainer.Bottom + 10),
+                Location = new Point(10, prevContainer.Bottom + 5),
                 AutoSizeHeight = false,
                 WrapText = false,
                 Parent = parentPanel,
-                Text = "Show Image: ",
-                Width = 75,
+                Text = "",
+                Width = 85,
+            };
+            Label cursorClipShowHeaderLabel = new Label()
+            {
+                Location = new Point(cursorClipShowHeader0Label.Right + 5, prevContainer.Bottom + 10),
+                AutoSizeHeight = false,
+                WrapText = false,
+                Parent = parentPanel,
+                Text = "Out of Combat",
+                Width = 100,
+            };
+            Label cursorClipShowHeaderCombatLabel = new Label()
+            {
+                Location = new Point(cursorClipShowHeaderLabel.Right + 5, prevContainer.Bottom + 10),
+                AutoSizeHeight = false,
+                WrapText = false,
+                Parent = parentPanel,
+                Text = "In Combat",
+                Width = 100,
+            };
+            prevContainer = cursorClipShowHeader0Label;
+
+            Label cursorShowLabel = new Label()
+            {
+                Location = new Point(prevContainer.Left, prevContainer.Bottom + 10),
+                AutoSizeHeight = false,
+                WrapText = false,
+                Parent = parentPanel,
+                Text = "Show Image:",
+                Width = prevContainer.Width,
             };
             Dropdown cursorShowSelect = new Dropdown()
             {
-                Location = new Point(cursorShowLabel.Right + 5, prevContainer.Bottom + 5),
-                Width = 160,
+                Location = new Point(cursorClipShowHeaderLabel.Left, cursorClipShowHeaderLabel.Bottom + 5),
+                Width = cursorClipShowHeaderLabel.Width,
                 Parent = parentPanel,
             };
             foreach (var s in Enum.GetNames(typeof(Module.ShowMode))) cursorShowSelect.Items.Add(s);
@@ -223,21 +208,34 @@ namespace Manlaan.MouseCursor.Views
                 Enum.TryParse(cursorShowSelect.SelectedItem, out Module.ShowMode showMode);
                 Module._settingMouseCursorShow.Value = showMode;
             };
+            Dropdown cursorShowCombatSelect = new Dropdown()
+            {
+                Location = new Point(cursorClipShowHeaderCombatLabel.Left, cursorClipShowHeaderCombatLabel.Bottom + 5),
+                Width = cursorClipShowHeaderCombatLabel.Width,
+                Parent = parentPanel,
+            };
+            foreach (var s in Enum.GetNames(typeof(Module.ShowMode))) cursorShowCombatSelect.Items.Add(s);
+            cursorShowCombatSelect.SelectedItem = Enum.GetName(typeof(Module.ShowMode), Module._settingMouseCursorShowCombat.Value);
+            cursorShowCombatSelect.ValueChanged += delegate
+            {
+                Enum.TryParse(cursorShowCombatSelect.SelectedItem, out Module.ShowMode showMode);
+                Module._settingMouseCursorShowCombat.Value = showMode;
+            };
             prevContainer = cursorShowLabel;
 
             Label cursorClipLabel = new Label()
             {
-                Location = new Point(10, prevContainer.Bottom + 10),
+                Location = new Point(prevContainer.Left, prevContainer.Bottom + 10),
                 AutoSizeHeight = false,
                 WrapText = false,
                 Parent = parentPanel,
-                Text = "Cursor Clip: ",
-                Width = 75,
+                Text = "Clip Cursor:",
+                Width = prevContainer.Width,
             };
             Dropdown cursorClipSelect = new Dropdown()
             {
-                Location = new Point(cursorClipLabel.Right + 5, prevContainer.Bottom + 5),
-                Width = 160,
+                Location = new Point(cursorShowSelect.Left, cursorShowSelect.Bottom + 5),
+                Width = cursorShowSelect.Width,
                 Parent = parentPanel,
             };
             foreach (var s in Enum.GetNames(typeof(Module.ClipMode))) cursorClipSelect.Items.Add(s);
@@ -247,27 +245,57 @@ namespace Manlaan.MouseCursor.Views
                 Enum.TryParse(cursorClipSelect.SelectedItem, out Module.ClipMode clipMode);
                 Module._settingMouseCursorClip.Value = clipMode;
             };
-            prevContainer = cursorClipLabel;
-
-            IView settingFreezeAfterDragView = SettingView.FromType(Module._settingMouseCursorFreezeAfterDrag, buildPanel.Width);
-            ViewContainer _settingFreezeAfterDragContainer = new ViewContainer()
+            Dropdown cursorClipCombatSelect = new Dropdown()
             {
-                WidthSizingMode = SizingMode.Fill,
-                Location = new Point(10, prevContainer.Bottom + 5),
-                Parent = parentPanel
-            };
-            _settingFreezeAfterDragContainer.Show(settingFreezeAfterDragView);
-            prevContainer = _settingFreezeAfterDragContainer;
-
-            IView settingFreezePeriodDragView = SettingView.FromType(Module._settingMouseCursorFreezeAfterDragPeriod, buildPanel.Width);
-            ViewContainer _settingFreezePeriodContainer = new ViewContainer()
-            {
-                WidthSizingMode = SizingMode.Fill,
-                Location = new Point(10, prevContainer.Bottom + 5),
+                Location = new Point(cursorShowCombatSelect.Left, cursorShowCombatSelect.Bottom + 5),
+                Width = cursorShowCombatSelect.Width,
                 Parent = parentPanel,
             };
-            _settingFreezePeriodContainer.Show(settingFreezePeriodDragView);
-            prevContainer = _settingFreezePeriodContainer;
+            foreach (var s in Enum.GetNames(typeof(Module.ClipMode))) cursorClipCombatSelect.Items.Add(s);
+            cursorClipCombatSelect.SelectedItem = Enum.GetName(typeof(Module.ClipMode), Module._settingMouseCursorClipCombat.Value);
+            cursorClipCombatSelect.ValueChanged += delegate
+            {
+                Enum.TryParse(cursorClipCombatSelect.SelectedItem, out Module.ClipMode clipMode);
+                Module._settingMouseCursorClipCombat.Value = clipMode;
+            };
+            prevContainer = cursorClipCombatSelect;
+
+            //
+            //
+            //                       Freeeze Cursor after Drag or Actioncam Settings
+            //
+            //
+
+            ViewContainer _settingFreezeCursorContainer = new ViewContainer()
+            {
+                Location = new Point(10, prevContainer.Bottom + 5),
+                Width = 210,
+                Parent = parentPanel
+            };
+            IView settingFreezeCursorView = SettingView.FromType(Module._settingMouseCursorFreezeCursor, _settingFreezeCursorContainer.Width);
+            _settingFreezeCursorContainer.Show(settingFreezeCursorView);
+
+            TrackBar freezeCursorPeriodSlider = new TrackBar()
+            {
+                Location = new Point(_settingFreezeCursorContainer.Right + 5, _settingFreezeCursorContainer.Top + 5),
+                Width = 250,
+                MinValue = 1.0f,
+                MaxValue = 500f,
+                Value = Module._settingMouseCursorFreezeCursorPeriod.Value,
+                BasicTooltipText = $"{Module._settingMouseCursorFreezeCursorPeriod.Value:0} ms",
+                Visible = Module._settingMouseCursorFreezeCursor.Value,
+                Parent = parentPanel,
+            };
+            freezeCursorPeriodSlider.ValueChanged += delegate
+            {
+                Module._settingMouseCursorFreezeCursorPeriod.Value = freezeCursorPeriodSlider.Value;
+                freezeCursorPeriodSlider.BasicTooltipText = $"{freezeCursorPeriodSlider.Value:0} ms";
+            };
+            (settingFreezeCursorView as BoolSettingView).ValueChanged += delegate (object s, Blish_HUD.ValueEventArgs<bool> e)
+            {
+                freezeCursorPeriodSlider.Visible = Module._settingMouseCursorFreezeCursor.Value;
+            };
+            prevContainer = freezeCursorPeriodSlider;
         }
     }
 }
