@@ -1,37 +1,163 @@
 ﻿using System;
-using System.ComponentModel.Composition;
+using System.IO;
+using WForms = System.Windows.Forms;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Graphics;
 using Blish_HUD;
-using Blish_HUD.Input;
 using Blish_HUD.Modules;
 using Blish_HUD.Modules.Managers;
 using Blish_HUD.Settings;
 using Blish_HUD.Graphics.UI;
+using static Blish_HUD.GameService;
 using Manlaan.MouseCursor.Models;
 using Manlaan.MouseCursor.Controls;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
-using Microsoft.Xna.Framework.Graphics;
-using static Blish_HUD.GameService;
-using System.IO;
-using System.Collections.Generic;
-using Blish_HUD.Debug;
+using System.Runtime.InteropServices;
+
+#region Extern
+internal enum CursorFlags
+{
+    CursorHiding,
+    CursorShowing,
+    CursorSuppressed
+}
+internal struct CursorInfo
+{
+    //
+    // Summary:
+    //     The caller must set this to Marshal.SizeOf(typeof(CURSORINFO))
+    public int CbSize;
+
+    public CursorFlags Flags;
+
+    public IntPtr HCursor;
+
+    public Point ScreenPosition;
+}
+
+internal struct RECT
+{
+    public int Left;
+    public int Top;
+    public int Right;
+    public int Bottom;
+
+}
+
+internal struct POINT
+{
+    public int x;
+    public int y;
+
+}
+
+internal static class WinApi
+{
+    [DllImport("user32.dll")]
+    private static extern bool GetCursorInfo(ref CursorInfo pci);
+
+    [DllImport("user32.dll")]
+    private static extern bool GetCursorClip(ref RECT rec);
+
+    [DllImport("user32.dll")]
+    private static extern bool ClipCursor(ref RECT rec);
+
+    [DllImport("user32.dll")]
+    private static extern bool GetWindowRect(IntPtr hWnd, ref RECT lpRect);
+
+    [DllImport("user32.dll")]
+    private static extern bool GetClientRect(IntPtr hWnd, ref RECT lpRect);
+
+    [DllImport("user32.dll")]
+    private static extern bool ClientToScreen(IntPtr hWnd, ref POINT lpPoint);
+
+    [DllImport("user32.dll")]
+    private static extern bool GetCursorPos(IntPtr hWnd, ref POINT lpPoint);
+
+    internal static CursorInfo GetCursorInfo()
+    {
+        CursorInfo cursorInfo = default;
+        cursorInfo.CbSize = Marshal.SizeOf(typeof(CursorInfo));
+        CursorInfo pci = cursorInfo;
+        GetCursorInfo(ref pci);
+        return pci;
+    }
+
+    internal static System.Drawing.Rectangle? GetCursorClip()
+    {
+        RECT rect = default;
+        return GetCursorClip(ref rect) ?
+            new System.Drawing.Rectangle(rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top) :
+            null;
+    }
+
+    internal static System.Drawing.Rectangle? GetWindowRect(IntPtr hWnd)
+    {
+        RECT rect = default;
+        return GetWindowRect(hWnd, ref rect) ?
+            new System.Drawing.Rectangle(rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top) :
+            null;
+    }
+
+    internal static System.Drawing.Rectangle? GetClientRect(IntPtr hWnd)
+    {
+        RECT rect = default;
+        return GetClientRect(hWnd, ref rect) ?
+            new System.Drawing.Rectangle(rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top) :
+            null;
+    }
+
+    internal static System.Drawing.Point? ClientToScreen(IntPtr hWnd)
+    {
+        POINT point = default;
+        return ClientToScreen(hWnd, ref point) ?
+            new System.Drawing.Point(point.x, point.y) :
+            null;
+    }
+
+    internal static System.Drawing.Point? GetCursorPos(IntPtr hWnd)
+    {
+        POINT point = default;
+        return GetCursorPos(hWnd, ref point) ?
+            new System.Drawing.Point(point.x, point.y) :
+            null;
+    }
+}
+#endregion
 
 namespace Manlaan.MouseCursor
 {
     [Export(typeof(Blish_HUD.Modules.Module))]
     public class Module : Blish_HUD.Modules.Module
     {
+        public enum ClipMode
+        {
+            Never,
+            Always,
+        }
+        public enum ShowMode
+        {
+            Never,
+            Always,
+            Dragging,
+            NotDragging,
+        }
+
+
         internal static Module ModuleInstance;
 
         #region Service Managers
+        private static readonly Logger Logger = Logger.GetLogger<Module>();
         internal SettingsManager SettingsManager => ModuleParameters.SettingsManager;
         internal ContentsManager ContentsManager => ModuleParameters.ContentsManager;
         internal DirectoriesManager DirectoriesManager => ModuleParameters.DirectoriesManager;
         internal Gw2ApiManager Gw2ApiManager => ModuleParameters.Gw2ApiManager;
         #endregion
 
-
+        #region Settings
         public static SettingCollection _settingsHidden;
         public static SettingEntry<int> _settingMouseCursorSize;
         public static SettingEntry<float> _settingMouseCursorOpacity;
@@ -39,12 +165,30 @@ namespace Manlaan.MouseCursor
         public static SettingEntry<string> _settingMouseCursorColor;
         public static SettingEntry<bool> _settingMouseCursorCameraDrag;
         public static SettingEntry<bool> _settingMouseCursorAboveBlish;
-        public static SettingEntry<bool> _settingMouseCursorOnlyCombat;
-        private DrawMouseCursor _mouseImg;
-        private Point _mousePos = new Point(0, 0);
-        private bool _inActionCam = false;
+        public static SettingEntry<ShowMode> _settingMouseCursorShow;
+        public static SettingEntry<ClipMode> _settingMouseCursorClip;
+        public static SettingEntry<ShowMode> _settingMouseCursorShowCombat;
+        public static SettingEntry<ClipMode> _settingMouseCursorClipCombat;
+        public static SettingEntry<bool> _settingMouseCursorFreezeCursor;
+        public static SettingEntry<float> _settingMouseCursorFreezeCursorPeriod;
         public static List<MouseFile> _mouseFiles = new List<MouseFile>();
         public static List<Gw2Sharp.WebApi.V2.Models.Color> _colors = new List<Gw2Sharp.WebApi.V2.Models.Color>();
+        #endregion
+
+        private DrawMouseCursor _mouseImg;
+        private TimeSpan _freezeStart;
+        private Point _freezeStartPoint;
+        private bool _freezeCursor = false;
+        private bool _shouldClip = false;
+        private bool _inActionCam = false;
+        private bool _inActionCamChanged = false;
+        private bool _camDragged = false;
+        private bool _camDraggedChanged = false;
+        private bool _cursorVis = true;
+        private bool _cursorVisChanged = false;
+        private double _cursorVel = 0.0f;
+        private bool _cursorVelChanged = false;
+        private MouseState _lastMouseState;
 
 
         [ImportingConstructor]
@@ -52,30 +196,33 @@ namespace Manlaan.MouseCursor
 
         protected override void DefineSettings(SettingCollection settings)
         {
-            _settingMouseCursorImage = settings.DefineSetting("MouseCursorImage", "Circle Cyan.png");
-            _settingMouseCursorColor = settings.DefineSetting("MouseCursorColor", "White0");
-            _settingMouseCursorSize = settings.DefineSetting("MouseCursorSize", 70, () => "Size", () => "");
-            _settingMouseCursorOpacity = settings.DefineSetting("MouseCursorOpacity", 1.0f, () => "Opacity", () => "");
+            _settingMouseCursorImage = settings.DefineSetting("MouseCursorImage", "Circle Cyan.png", () => "");
+            _settingMouseCursorColor = settings.DefineSetting("MouseCursorColor", "White0", () => "");
+            _settingMouseCursorSize = settings.DefineSetting("MouseCursorSize", 70, () => "Size");
+            _settingMouseCursorOpacity = settings.DefineSetting("MouseCursorOpacity", 1.0f, () => "Opacity");
             _settingMouseCursorCameraDrag = settings.DefineSetting("MouseCursorCameraDrag", false, () => "Show When Camera Dragging", () => "Shows the cursor when you move the camera.");
-            _settingMouseCursorAboveBlish = settings.DefineSetting("MouseCursorAboveBlish", false, () => "Show Above Blish Windows", () => "");
-            _settingMouseCursorOnlyCombat = settings.DefineSetting("MouseCursorOnlyCombat", false, () => "Only Show During Combat", () => "");
+            _settingMouseCursorAboveBlish = settings.DefineSetting("MouseCursorAboveBlish", false, () => "Show Above Blish Windows");
+            _settingMouseCursorShow = settings.DefineSetting("MouseCursorShow", ShowMode.Never, () => "");
+            _settingMouseCursorShowCombat = settings.DefineSetting("MouseCursorShowCombat", ShowMode.Never, () => "");
+            _settingMouseCursorClip = settings.DefineSetting("MouseCursorClip", ClipMode.Never, () => "");
+            _settingMouseCursorClipCombat = settings.DefineSetting("MouseCursorClipCombat", ClipMode.Never, () => "");
+            _settingMouseCursorFreezeCursor = settings.DefineSetting("MouseCursorCenterAfterDrag", false, () => "Freeze Cursor After Dragging");
+            _settingMouseCursorFreezeCursorPeriod = settings.DefineSetting("MouseCursorFreezePeriod", 2f, () => "", () => $"{_settingMouseCursorFreezeCursorPeriod.Value:0} ms");
 
-            _settingMouseCursorImage.SettingChanged += UpdateMouseSettings_string;
-            _settingMouseCursorColor.SettingChanged += UpdateMouseSettings_string;
-            _settingMouseCursorSize.SettingChanged += UpdateMouseSettings_int;
-            _settingMouseCursorOpacity.SettingChanged += UpdateMouseSettings_float;
-            _settingMouseCursorCameraDrag.SettingChanged += UpdateMouseSettings_bool;
-            _settingMouseCursorAboveBlish.SettingChanged += UpdateMouseSettings_bool;
-            _settingMouseCursorOnlyCombat.SettingChanged += UpdateMouseSettings_bool;
-
+            _settingMouseCursorImage.SettingChanged += UpdateMouseCursorSettingsCursorImageNColor;
+            _settingMouseCursorColor.SettingChanged += UpdateMouseCursorSettingsCursorImageNColor;
+            _settingMouseCursorSize.SettingChanged += UpdateMouseCursorSettingsCursorSize;
+            _settingMouseCursorOpacity.SettingChanged += UpdateMouseCursorSettingsOpacity;
+            _settingMouseCursorAboveBlish.SettingChanged += UpdateMouseCursorSettingsAboveBlish;
 
             _settingMouseCursorSize.SetRange(0, 300);
             _settingMouseCursorOpacity.SetRange(0f, 1f);
+            _settingMouseCursorFreezeCursorPeriod.SetRange(1f, 500f);
         }
+
         public override IView GetSettingsView()
         {
-            return new MouseCursor.Views.SettingsView();
-            //return new SettingsView( (this.ModuleParameters.SettingsManager.ModuleSettings);
+            return new Views.SettingsView();
         }
 
         protected override void Initialize()
@@ -91,6 +238,7 @@ namespace Manlaan.MouseCursor
             _mouseImg.Parent = Graphics.SpriteScreen;
 
         }
+
         protected override async Task LoadAsync()
         {
             await base.LoadAsync();
@@ -139,76 +287,237 @@ namespace Manlaan.MouseCursor
                 else return x.Name.CompareTo(y.Name);
             });
         }
+        /// <inheritdoc />
         protected override void OnModuleLoaded(EventArgs e)
         {
-            UpdateMouseSettings_int();
-            UpdateMouseSettings_float();
-            UpdateMouseSettings_bool();
-            UpdateMouseSettings_string();
+            UpdateMouseCursorSettingsCursorSize();
+            UpdateMouseCursorSettingsOpacity();
+            UpdateMouseCursorSettingsAboveBlish();
+            UpdateMouseCursorSettingsCursorImageNColor();
 
             base.OnModuleLoaded(e);
         }
 
         protected override void Update(GameTime gameTime)
         {
-            bool lrBtnPressed = Input.Mouse.CameraDragging || Input.Mouse.State.LeftButton == ButtonState.Pressed;
-            bool camIsDragged = !Input.Mouse.CursorIsVisible || lrBtnPressed;
+            // Logger.Debug($"==============================================================================");
+            UpdateCursorState(gameTime);
+            UpdateCursorClipping();
+            UpdateCursorFreeze(gameTime);
 
-            // Need to track if we entered the action cam so we can ignore the use of left and right mousebutton
-            if (!_inActionCam && !Input.Mouse.CursorIsVisible && !lrBtnPressed) _inActionCam = true;
-            if (Input.Mouse.CursorIsVisible) _inActionCam = false;
+            UpdateCursorImg();
+            _lastMouseState = Mouse.GetState();
+            // Logger.Debug($"======================================END=====================================");
+        }
 
-            Debug.OverlayTexts.TryAdd("RightButton.Pressed ", (GameTime _) => "RightButton     " + (Input.Mouse.State.RightButton == ButtonState.Pressed ? "Yes" : "No"));
-            Debug.OverlayTexts.TryAdd("LeftButton.Pressed  ", (GameTime _) => "LeftButton      " + (Input.Mouse.State.LeftButton == ButtonState.Pressed ? "Yes" : "No"));
-            Debug.OverlayTexts.TryAdd("CursorIsVisible     ", (GameTime _) => "CursorIsVisible " + (Input.Mouse.CursorIsVisible ? "Yes" : "No"));
-            Debug.OverlayTexts.TryAdd("CameraDragging      ", (GameTime _) => "CameraDragging  " + (Input.Mouse.CameraDragging ? "Yes" : "No"));
-            Debug.OverlayTexts.TryAdd("InActionCam         ", (GameTime _) => "InActionCam     " + (_inActionCam ? "Yes" : "No"));
+        private void UpdateCursorState(GameTime gt)
+        {
+            bool cursorVis = Input.Mouse.CursorIsVisible;
+            _cursorVisChanged = _cursorVis != cursorVis;
+            _cursorVis = cursorVis;
+
+            bool camDragged = !cursorVis && !_inActionCam && (
+                Mouse.GetState().RightButton == ButtonState.Pressed ||
+                Mouse.GetState().LeftButton == ButtonState.Pressed
+            );
+            _camDraggedChanged = _camDragged != camDragged;
+            _camDragged = camDragged;
+
+            bool inActionCam = !cursorVis && !_camDragged &&
+                WinApi.GetClientRect(GameIntegration.Gw2Instance.Gw2WindowHandle).GetValueOrDefault().Contains(
+                    Mouse.GetState().Position.X, Mouse.GetState().Position.Y
+                );
+            _inActionCamChanged = _inActionCam != inActionCam;
+            _inActionCam = inActionCam;
+
+
+            var posdiff = Mouse.GetState().Position.ToVector2() - _lastMouseState.Position.ToVector2();
+            double cursorVel = posdiff.Length() / gt.ElapsedGameTime.TotalSeconds;
+            _cursorVelChanged = (cursorVel - _cursorVel) < 1e-9;
+            _cursorVel = cursorVel;
+
+            // Logger.Debug($"_cursorVisChanged         {_cursorVisChanged}");
+            // Logger.Debug($"_cursorVis                {_cursorVis}");
+            // Logger.Debug($"_camDraggedChanged        {_camDraggedChanged}");
+            // Logger.Debug($"_camDragged               {_camDragged}");
+            // Logger.Debug($"_inActionCamChanged       {_inActionCamChanged}");
+            // Logger.Debug($"_inActionCam              {_inActionCam}");
+            // Logger.Debug($"WForms.Cursor.Clip        {WForms.Cursor.Clip}");
+            // Logger.Debug($"clientToScr               {WinApi.ClientToScreen(GameIntegration.Gw2Instance.Gw2WindowHandle)}");
+            // Logger.Debug($"clientRect                {WinApi.GetClientRect(GameIntegration.Gw2Instance.Gw2WindowHandle)}");
+        }
+
+        private void UpdateCursorImg()
+        {
             // Only display if not in cutscene, loading screen, character selection or actioncam
-            _mouseImg.Visible = GameIntegration.Gw2Instance.IsInGame && GameIntegration.Gw2Instance.Gw2HasFocus && !_inActionCam;
+            _mouseImg.Visible = GameIntegration.Gw2Instance.Gw2HasFocus && GameIntegration.Gw2Instance.IsInGame && !_inActionCam;
             // Check if show only in combat or if we are in combat
-            _mouseImg.Visible = _mouseImg.Visible && (!_settingMouseCursorOnlyCombat.Value || Gw2Mumble.PlayerCharacter.IsInCombat);
-            // Check if show when cam is dragged or we aren't dragging
-            _mouseImg.Visible = _mouseImg.Visible && (_settingMouseCursorCameraDrag.Value || !camIsDragged);
+            _mouseImg.Visible = _mouseImg.Visible &&
+                (
+                    (
+                        !Gw2Mumble.PlayerCharacter.IsInCombat &&
+                        (
+                            (_settingMouseCursorShow.Value == ShowMode.Always) ||
+                            (_settingMouseCursorShow.Value == ShowMode.Dragging && _camDragged) ||
+                            (_settingMouseCursorShow.Value == ShowMode.NotDragging && !_camDragged)
+                        )
+                    ) ||
+                    (
+                        Gw2Mumble.PlayerCharacter.IsInCombat &&
+                        (
+                            (_settingMouseCursorShowCombat.Value == ShowMode.Always) ||
+                            (_settingMouseCursorShowCombat.Value == ShowMode.Dragging && _camDragged) ||
+                            (_settingMouseCursorShowCombat.Value == ShowMode.NotDragging && !_camDragged)
+                        )
+                    )
+                );
 
-            // Only update the position if the cam isn't dragged
-            if (Input.Mouse.CursorIsVisible)
+            if (_cursorVis) _mouseImg.Location = new Point(
+                Clamp(
+                    Mouse.GetState().Position.X - _settingMouseCursorSize.Value / 2,
+                    -_settingMouseCursorSize.Value / 2,
+                    Graphics.WindowWidth - _settingMouseCursorSize.Value / 2
+                ),
+                Clamp(
+                    Mouse.GetState().Position.Y - _settingMouseCursorSize.Value / 2,
+                    -_settingMouseCursorSize.Value / 2,
+                    Graphics.WindowHeight - _settingMouseCursorSize.Value / 2
+                )
+            );
+        }
+
+        private void UpdateCursorFreeze(GameTime gameTime)
+        {
+            // Check if the cursor should be frozen after dragging and if dragging is stopped
+            _freezeCursor = ((_camDraggedChanged && !_camDragged && !_inActionCam) || (_inActionCamChanged && !_inActionCam)) ?
+                _settingMouseCursorFreezeCursor.Value :
+                _freezeCursor;
+            _freezeStart = ((_camDraggedChanged && !_camDragged && !_inActionCam) || (_inActionCamChanged && !_inActionCam)) ?
+                gameTime.TotalGameTime :
+                _freezeStart;
+
+            _freezeStartPoint = (_camDraggedChanged && _camDragged && !_inActionCamChanged) || (_inActionCamChanged && _inActionCam && !_camDraggedChanged) ?
+                new Point(Mouse.GetState().Position.X, Mouse.GetState().Position.Y) :
+                _freezeStartPoint;
+
+            // Logger.Debug($"_freezeCursor              {_freezeCursor}");
+            // Logger.Debug($"updateFreezeStartPoint     {(_camDraggedChanged && _camDragged && !_inActionCamChanged) || (_inActionCamChanged && _inActionCam && !_camDraggedChanged)}");
+            // Logger.Debug($"_freezeStartPoint          {_freezeStartPoint}");
+            // Logger.Debug($"Mouse.GetState().Position  {Mouse.GetState().Position}");
+            // Logger.Debug($"_mouseImg.Location         {_mouseImg.Location}");
+            // Logger.Debug($"_settingMouseCursorSize    {_settingMouseCursorSize.Value}");
+
+            if (_freezeCursor)
             {
-                _mousePos.X = Input.Mouse.Position.X;
-                _mousePos.Y = Input.Mouse.Position.Y;
+                double frozenFor = gameTime.TotalGameTime.Subtract(_freezeStart).TotalMilliseconds;
+                if (frozenFor > _settingMouseCursorFreezeCursorPeriod.Value ||
+                    !GameIntegration.Gw2Instance.IsInGame ||
+                    !GameIntegration.Gw2Instance.Gw2HasFocus
+                ) _freezeCursor = false;
+
+                System.Drawing.Point? clientToScr = WinApi.ClientToScreen(GameIntegration.Gw2Instance.Gw2WindowHandle);
+                System.Drawing.Rectangle? clientRect = WinApi.GetClientRect(GameIntegration.Gw2Instance.Gw2WindowHandle);
+                WForms.Cursor.Position = _freezeCursor ? WForms.Cursor.Clip.Location : WForms.Cursor.Position;
+                WForms.Cursor.Clip = new System.Drawing.Rectangle(
+                    _freezeCursor ? clientToScr.GetValueOrDefault().X + _freezeStartPoint.X :
+                        _shouldClip ? clientToScr.GetValueOrDefault().X :
+                            0,
+                    _freezeCursor ? clientToScr.GetValueOrDefault().Y + _freezeStartPoint.Y :
+                        _shouldClip ? clientToScr.GetValueOrDefault().Y :
+                            0,
+                    _freezeCursor ? 1 :
+                        _shouldClip ? clientRect.GetValueOrDefault().Width :
+                            0,
+                    _freezeCursor ? 1 :
+                        _shouldClip ? clientRect.GetValueOrDefault().Height :
+                            0
+                );
+                // Logger.Debug($"   CurrentFreezeTime       {frozenFor}");
+                // Logger.Debug($"   _freezeCursor           {_freezeCursor}");
+                // Logger.Debug($"   WForms.Cursor.Clip      {WForms.Cursor.Clip}");
+            }
+        }
+
+        private void UpdateCursorClipping()
+        {
+            System.Drawing.Rectangle? clientRect = WinApi.GetClientRect(GameIntegration.Gw2Instance.Gw2WindowHandle);
+            System.Drawing.Point? clientToScr = WinApi.ClientToScreen(GameIntegration.Gw2Instance.Gw2WindowHandle);
+            bool shouldClip =
+                // We already restrict the cursor with tighter bounds
+                !_freezeCursor &&
+                // Check if if there's a need to clip the cursor
+                GameIntegration.Gw2Instance.IsInGame && GameIntegration.Gw2Instance.Gw2HasFocus &&
+                // Check if we want to clip the cursor
+                (
+                    _inActionCam || _camDragged ||
+                    (
+                        !Gw2Mumble.PlayerCharacter.IsInCombat &&
+                        (
+                            _settingMouseCursorClip.Value == ClipMode.Always
+                        )
+                    ) ||
+                    (
+                        Gw2Mumble.PlayerCharacter.IsInCombat &&
+                        (
+                            _settingMouseCursorClipCombat.Value == ClipMode.Always
+                        )
+                    )
+                );
+            // Only clip cursor if it is in the clipping area
+            clientRect.GetValueOrDefault().Contains(Mouse.GetState().Position.X, Mouse.GetState().Position.Y);
+
+            bool shouldClipChanged = _shouldClip != shouldClip;
+            _shouldClip = shouldClip;
+
+            if (shouldClipChanged || (_cursorVisChanged && _cursorVis))
+            {
+                // Logger.Debug($"    Clip? {_shouldClip}");
+                WForms.Cursor.Clip = new System.Drawing.Rectangle(
+                    _shouldClip ? clientToScr.GetValueOrDefault().X : 0,
+                    _shouldClip ? clientToScr.GetValueOrDefault().Y : 0,
+                    _shouldClip ? clientRect.GetValueOrDefault().Width : 0,
+                    _shouldClip ? clientRect.GetValueOrDefault().Height : 0
+                );
+                // Logger.Debug($"    WForms.Cursor.Clip {WForms.Cursor.Clip}");
             }
 
-            // Set the new postition
-            _mouseImg.Location = new Point(
-                _mousePos.X - _settingMouseCursorSize.Value / 2,
-                _mousePos.Y - _settingMouseCursorSize.Value / 2
-            );
+            // Logger.Debug($"End Setting cursor clip to {WForms.Cursor.Clip}");
         }
 
         /// <inheritdoc />
         protected override void Unload()
         {
-            _settingMouseCursorImage.SettingChanged -= UpdateMouseSettings_string;
-            _settingMouseCursorColor.SettingChanged -= UpdateMouseSettings_string;
-            _settingMouseCursorSize.SettingChanged -= UpdateMouseSettings_int;
-            _settingMouseCursorOpacity.SettingChanged -= UpdateMouseSettings_float;
-            _settingMouseCursorCameraDrag.SettingChanged -= UpdateMouseSettings_bool;
-            _settingMouseCursorAboveBlish.SettingChanged -= UpdateMouseSettings_bool;
-            _settingMouseCursorOnlyCombat.SettingChanged -= UpdateMouseSettings_bool;
+            _settingMouseCursorImage.SettingChanged -= UpdateMouseCursorSettingsCursorImageNColor;
+            _settingMouseCursorColor.SettingChanged -= UpdateMouseCursorSettingsCursorImageNColor;
+            _settingMouseCursorSize.SettingChanged -= UpdateMouseCursorSettingsCursorSize;
+            _settingMouseCursorOpacity.SettingChanged -= UpdateMouseCursorSettingsOpacity;
+            _settingMouseCursorAboveBlish.SettingChanged -= UpdateMouseCursorSettingsAboveBlish;
+
+            WForms.Cursor.Clip = new System.Drawing.Rectangle();
             _mouseImg?.Dispose();
             _mouseFiles = null;
             _colors = null;
             ModuleInstance = null;
         }
 
-        private void UpdateMouseSettings_int(object sender = null, ValueChangedEventArgs<int> e = null)
+        private static T Clamp<T>(T value, T min, T max) where T : IComparable<T>
+        {
+            if (value.CompareTo(min) < 0) return min;
+            if (value.CompareTo(max) > 0) return max;
+            return value;
+        }
+
+        private void UpdateMouseCursorSettingsCursorSize(object sender = null, ValueChangedEventArgs<int> e = null)
         {
             _mouseImg.Size = new Point(_settingMouseCursorSize.Value, _settingMouseCursorSize.Value);
         }
-        private void UpdateMouseSettings_float(object sender = null, ValueChangedEventArgs<float> e = null)
+
+        private void UpdateMouseCursorSettingsOpacity(object sender = null, ValueChangedEventArgs<float> e = null)
         {
-            _mouseImg.Opacity = (float)(_settingMouseCursorOpacity.Value);
+            _mouseImg.Opacity = (float)_settingMouseCursorOpacity.Value;
         }
-        private void UpdateMouseSettings_string(object sender = null, ValueChangedEventArgs<string> e = null)
+
+        private void UpdateMouseCursorSettingsCursorImageNColor(object sender = null, ValueChangedEventArgs<string> e = null)
         {
             MouseFile mouseFile = _mouseFiles.Find(x => x.Name.Equals(_settingMouseCursorImage.Value));
             if (mouseFile == null || string.IsNullOrEmpty(mouseFile.File) || !File.Exists(mouseFile.File))
@@ -217,17 +526,19 @@ namespace Manlaan.MouseCursor
             }
             else
             {
-                using (var gd = GameService.Graphics.LendGraphicsDeviceContext())
+                using (var gd = Graphics.LendGraphicsDeviceContext())
                 {
                     _mouseImg.Texture = PremultiplyTexture(mouseFile.File, gd.GraphicsDevice);
                 }
             }
             _mouseImg.Tint = ToRGB(_colors.Find(x => x.Name.Equals(_settingMouseCursorColor.Value)));
         }
-        private void UpdateMouseSettings_bool(object sender = null, ValueChangedEventArgs<bool> e = null)
+
+        private void UpdateMouseCursorSettingsAboveBlish(object sender = null, ValueChangedEventArgs<bool> e = null)
         {
             _mouseImg.AboveBlish = _settingMouseCursorAboveBlish.Value;
         }
+
         private void ExtractFile(string filePath)
         {
             var fullPath = Path.Combine(DirectoriesManager.GetFullDirectoryPath("mousecursor"), filePath);
@@ -241,7 +552,8 @@ namespace Manlaan.MouseCursor
                 File.WriteAllBytes(fullPath, buffer);
             }
         }
-        private Texture2D PremultiplyTexture(String FilePath, GraphicsDevice device)
+
+        private Texture2D PremultiplyTexture(string FilePath, GraphicsDevice device)
         {
             Texture2D texture;
 
@@ -262,6 +574,7 @@ namespace Manlaan.MouseCursor
             }
             return texture;
         }
+
         private Color ToRGB(Gw2Sharp.WebApi.V2.Models.Color color)
         {
             if (color == null)
