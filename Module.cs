@@ -300,14 +300,14 @@ namespace Manlaan.MouseCursor
 
         protected override void Update(GameTime gameTime)
         {
-            // Logger.Debug($"==============================================================================");
+            Logger.Debug($"==============================================================================");
             UpdateCursorState(gameTime);
             UpdateCursorClipping();
             UpdateCursorFreeze(gameTime);
 
             UpdateCursorImg();
             _lastMouseState = Mouse.GetState();
-            // Logger.Debug($"======================================END=====================================");
+            Logger.Debug($"======================================END=====================================");
         }
 
         private void UpdateCursorState(GameTime gt)
@@ -374,36 +374,16 @@ namespace Manlaan.MouseCursor
                 );
             System.Drawing.Rectangle? clientRect = WinApi.GetClientRect(GameIntegration.Gw2Instance.Gw2WindowHandle);
             if (_cursorVis) _mouseImg.Location = new Point(
-                // Clamp(
-                //     Mouse.GetState().Position.X - _settingMouseCursorSize.Value / 2,
-                //     -_settingMouseCursorSize.Value / 2,
-                //     Graphics.WindowWidth - _settingMouseCursorSize.Value / 2
-                // ),
-                // Clamp(
-                //     Mouse.GetState().Position.Y - _settingMouseCursorSize.Value / 2,
-                //     -_settingMouseCursorSize.Value / 2,
-                //     Graphics.WindowHeight - _settingMouseCursorSize.Value / 2
-                // )
                 Clamp(
                     Input.Mouse.Position.X - _settingMouseCursorSize.Value / 2,
                     -_settingMouseCursorSize.Value / 2,
-                    Graphics.WindowWidth - _settingMouseCursorSize.Value / 2
+                    Graphics.SpriteScreen.Size.X - _settingMouseCursorSize.Value / 2
                 ),
                 Clamp(
                     Input.Mouse.Position.Y - _settingMouseCursorSize.Value / 2,
                     -_settingMouseCursorSize.Value / 2,
-                    Graphics.WindowHeight - _settingMouseCursorSize.Value / 2
+                    Graphics.SpriteScreen.Size.Y - _settingMouseCursorSize.Value / 2
                 )
-                // Clamp(
-                //     Mouse.GetState().Position.X - (_settingMouseCursorSize.Value / 2),
-                //     -_settingMouseCursorSize.Value / 2,
-                //     clientRect.GetValueOrDefault().Width - (_settingMouseCursorSize.Value / 2)
-                // ),
-                // Clamp(
-                //     Mouse.GetState().Position.Y - (_settingMouseCursorSize.Value / 2),
-                //     -_settingMouseCursorSize.Value / 2,
-                //     clientRect.GetValueOrDefault().Height - (_settingMouseCursorSize.Value / 2)
-                // )
             );
             Logger.Debug($"Mouse.GetState().Position  {Mouse.GetState().Position}");
             Logger.Debug($"Input.Mouse.Position       {Input.Mouse.Position}");
