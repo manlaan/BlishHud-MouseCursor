@@ -300,14 +300,14 @@ namespace Manlaan.MouseCursor
 
         protected override void Update(GameTime gameTime)
         {
-            // Logger.Debug($"==============================================================================");
+            Logger.Debug($"==============================================================================");
             UpdateCursorState(gameTime);
             UpdateCursorClipping();
             UpdateCursorFreeze(gameTime);
 
             UpdateCursorImg();
             _lastMouseState = Mouse.GetState();
-            // Logger.Debug($"======================================END=====================================");
+            Logger.Debug($"======================================END=====================================");
         }
 
         private void UpdateCursorState(GameTime gt)
@@ -336,15 +336,16 @@ namespace Manlaan.MouseCursor
             _cursorVelChanged = (cursorVel - _cursorVel) < 1e-9;
             _cursorVel = cursorVel;
 
-            // Logger.Debug($"_cursorVisChanged         {_cursorVisChanged}");
-            // Logger.Debug($"_cursorVis                {_cursorVis}");
-            // Logger.Debug($"_camDraggedChanged        {_camDraggedChanged}");
-            // Logger.Debug($"_camDragged               {_camDragged}");
-            // Logger.Debug($"_inActionCamChanged       {_inActionCamChanged}");
-            // Logger.Debug($"_inActionCam              {_inActionCam}");
-            // Logger.Debug($"WForms.Cursor.Clip        {WForms.Cursor.Clip}");
-            // Logger.Debug($"clientToScr               {WinApi.ClientToScreen(GameIntegration.Gw2Instance.Gw2WindowHandle)}");
-            // Logger.Debug($"clientRect                {WinApi.GetClientRect(GameIntegration.Gw2Instance.Gw2WindowHandle)}");
+            Logger.Debug($"_cursorVisChanged         {_cursorVisChanged}");
+            Logger.Debug($"_cursorVis                {_cursorVis}");
+            Logger.Debug($"_camDraggedChanged        {_camDraggedChanged}");
+            Logger.Debug($"_camDragged               {_camDragged}");
+            Logger.Debug($"_inActionCamChanged       {_inActionCamChanged}");
+            Logger.Debug($"_inActionCam              {_inActionCam}");
+            Logger.Debug($"WForms.Cursor.Clip        {WForms.Cursor.Clip}");
+            Logger.Debug($"clientToScr               {WinApi.ClientToScreen(GameIntegration.Gw2Instance.Gw2WindowHandle)}");
+            Logger.Debug($"clientRect                {WinApi.GetClientRect(GameIntegration.Gw2Instance.Gw2WindowHandle)}");
+            Logger.Debug($"clientWindowRect          {Graphics.WindowWidth};{Graphics.WindowHeight}");
         }
 
         private void UpdateCursorImg()
@@ -371,19 +372,22 @@ namespace Manlaan.MouseCursor
                         )
                     )
                 );
-
+            System.Drawing.Rectangle? clientRect = WinApi.GetClientRect(GameIntegration.Gw2Instance.Gw2WindowHandle);
             if (_cursorVis) _mouseImg.Location = new Point(
                 Clamp(
-                    Mouse.GetState().Position.X - _settingMouseCursorSize.Value / 2,
+                    Input.Mouse.Position.X - _settingMouseCursorSize.Value / 2,
                     -_settingMouseCursorSize.Value / 2,
-                    Graphics.WindowWidth - _settingMouseCursorSize.Value / 2
+                    Graphics.SpriteScreen.Size.X - _settingMouseCursorSize.Value / 2
                 ),
                 Clamp(
-                    Mouse.GetState().Position.Y - _settingMouseCursorSize.Value / 2,
+                    Input.Mouse.Position.Y - _settingMouseCursorSize.Value / 2,
                     -_settingMouseCursorSize.Value / 2,
-                    Graphics.WindowHeight - _settingMouseCursorSize.Value / 2
+                    Graphics.SpriteScreen.Size.Y - _settingMouseCursorSize.Value / 2
                 )
             );
+            Logger.Debug($"Mouse.GetState().Position  {Mouse.GetState().Position}");
+            Logger.Debug($"Input.Mouse.Position       {Input.Mouse.Position}");
+            Logger.Debug($"_mouseImg.Location         {_mouseImg.Location}");
         }
 
         private void UpdateCursorFreeze(GameTime gameTime)
@@ -400,12 +404,10 @@ namespace Manlaan.MouseCursor
                 new Point(Mouse.GetState().Position.X, Mouse.GetState().Position.Y) :
                 _freezeStartPoint;
 
-            // Logger.Debug($"_freezeCursor              {_freezeCursor}");
-            // Logger.Debug($"updateFreezeStartPoint     {(_camDraggedChanged && _camDragged && !_inActionCamChanged) || (_inActionCamChanged && _inActionCam && !_camDraggedChanged)}");
-            // Logger.Debug($"_freezeStartPoint          {_freezeStartPoint}");
-            // Logger.Debug($"Mouse.GetState().Position  {Mouse.GetState().Position}");
-            // Logger.Debug($"_mouseImg.Location         {_mouseImg.Location}");
-            // Logger.Debug($"_settingMouseCursorSize    {_settingMouseCursorSize.Value}");
+            Logger.Debug($"_freezeCursor              {_freezeCursor}");
+            Logger.Debug($"updateFreezeStartPoint     {(_camDraggedChanged && _camDragged && !_inActionCamChanged) || (_inActionCamChanged && _inActionCam && !_camDraggedChanged)}");
+            Logger.Debug($"_freezeStartPoint          {_freezeStartPoint}");
+            Logger.Debug($"_settingMouseCursorSize    {_settingMouseCursorSize.Value}");
 
             if (_freezeCursor)
             {
@@ -432,9 +434,9 @@ namespace Manlaan.MouseCursor
                         _shouldClip ? clientRect.GetValueOrDefault().Height :
                             0
                 );
-                // Logger.Debug($"   CurrentFreezeTime       {frozenFor}");
-                // Logger.Debug($"   _freezeCursor           {_freezeCursor}");
-                // Logger.Debug($"   WForms.Cursor.Clip      {WForms.Cursor.Clip}");
+                Logger.Debug($"   CurrentFreezeTime       {frozenFor}");
+                Logger.Debug($"   _freezeCursor           {_freezeCursor}");
+                Logger.Debug($"   WForms.Cursor.Clip      {WForms.Cursor.Clip}");
             }
         }
 
