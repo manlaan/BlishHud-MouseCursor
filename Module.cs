@@ -171,6 +171,7 @@ namespace Manlaan.MouseCursor
         public static SettingEntry<ClipMode> _settingMouseCursorClipCombat;
         public static SettingEntry<bool> _settingMouseCursorFreezeCursor;
         public static SettingEntry<float> _settingMouseCursorFreezeCursorPeriod;
+        public static SettingEntry<bool> _settingMouseCursorLogDebug;
         public static List<MouseFile> _mouseFiles = new List<MouseFile>();
         public static List<Gw2Sharp.WebApi.V2.Models.Color> _colors = new List<Gw2Sharp.WebApi.V2.Models.Color>();
         #endregion
@@ -208,6 +209,7 @@ namespace Manlaan.MouseCursor
             _settingMouseCursorClipCombat = settings.DefineSetting("MouseCursorClipCombat", ClipMode.Never, () => "");
             _settingMouseCursorFreezeCursor = settings.DefineSetting("MouseCursorCenterAfterDrag", false, () => "Freeze Cursor After Dragging");
             _settingMouseCursorFreezeCursorPeriod = settings.DefineSetting("MouseCursorFreezePeriod", 2f, () => "", () => $"{_settingMouseCursorFreezeCursorPeriod.Value:0} ms");
+            _settingMouseCursorLogDebug = settings.DefineSetting("MouseCursorLogDebug", false, () => "Log Debug Messages");
 
             _settingMouseCursorImage.SettingChanged += UpdateMouseCursorSettingsCursorImageNColor;
             _settingMouseCursorColor.SettingChanged += UpdateMouseCursorSettingsCursorImageNColor;
@@ -300,14 +302,14 @@ namespace Manlaan.MouseCursor
 
         protected override void Update(GameTime gameTime)
         {
-            Logger.Debug($"==============================================================================");
+            LogDebug($"==============================================================================");
             UpdateCursorState(gameTime);
             UpdateCursorClipping();
             UpdateCursorFreeze(gameTime);
 
             UpdateCursorImg();
             _lastMouseState = Mouse.GetState();
-            Logger.Debug($"======================================END=====================================");
+            LogDebug($"======================================END=====================================");
         }
 
         private void UpdateCursorState(GameTime gt)
@@ -336,16 +338,16 @@ namespace Manlaan.MouseCursor
             _cursorVelChanged = (cursorVel - _cursorVel) < 1e-9;
             _cursorVel = cursorVel;
 
-            Logger.Debug($"_cursorVisChanged         {_cursorVisChanged}");
-            Logger.Debug($"_cursorVis                {_cursorVis}");
-            Logger.Debug($"_camDraggedChanged        {_camDraggedChanged}");
-            Logger.Debug($"_camDragged               {_camDragged}");
-            Logger.Debug($"_inActionCamChanged       {_inActionCamChanged}");
-            Logger.Debug($"_inActionCam              {_inActionCam}");
-            Logger.Debug($"WForms.Cursor.Clip        {WForms.Cursor.Clip}");
-            Logger.Debug($"clientToScr               {WinApi.ClientToScreen(GameIntegration.Gw2Instance.Gw2WindowHandle)}");
-            Logger.Debug($"clientRect                {WinApi.GetClientRect(GameIntegration.Gw2Instance.Gw2WindowHandle)}");
-            Logger.Debug($"clientWindowRect          {Graphics.WindowWidth};{Graphics.WindowHeight}");
+            LogDebug($"_cursorVisChanged         {_cursorVisChanged}");
+            LogDebug($"_cursorVis                {_cursorVis}");
+            LogDebug($"_camDraggedChanged        {_camDraggedChanged}");
+            LogDebug($"_camDragged               {_camDragged}");
+            LogDebug($"_inActionCamChanged       {_inActionCamChanged}");
+            LogDebug($"_inActionCam              {_inActionCam}");
+            LogDebug($"WForms.Cursor.Clip        {WForms.Cursor.Clip}");
+            LogDebug($"clientToScr               {WinApi.ClientToScreen(GameIntegration.Gw2Instance.Gw2WindowHandle)}");
+            LogDebug($"clientRect                {WinApi.GetClientRect(GameIntegration.Gw2Instance.Gw2WindowHandle)}");
+            LogDebug($"clientWindowRect          {Graphics.WindowWidth};{Graphics.WindowHeight}");
         }
 
         private void UpdateCursorImg()
@@ -385,9 +387,9 @@ namespace Manlaan.MouseCursor
                     Graphics.SpriteScreen.Size.Y - _settingMouseCursorSize.Value / 2
                 )
             );
-            Logger.Debug($"Mouse.GetState().Position  {Mouse.GetState().Position}");
-            Logger.Debug($"Input.Mouse.Position       {Input.Mouse.Position}");
-            Logger.Debug($"_mouseImg.Location         {_mouseImg.Location}");
+            LogDebug($"Mouse.GetState().Position  {Mouse.GetState().Position}");
+            LogDebug($"Input.Mouse.Position       {Input.Mouse.Position}");
+            LogDebug($"_mouseImg.Location         {_mouseImg.Location}");
         }
 
         private void UpdateCursorFreeze(GameTime gameTime)
@@ -404,10 +406,10 @@ namespace Manlaan.MouseCursor
                 new Point(Mouse.GetState().Position.X, Mouse.GetState().Position.Y) :
                 _freezeStartPoint;
 
-            Logger.Debug($"_freezeCursor              {_freezeCursor}");
-            Logger.Debug($"updateFreezeStartPoint     {(_camDraggedChanged && _camDragged && !_inActionCamChanged) || (_inActionCamChanged && _inActionCam && !_camDraggedChanged)}");
-            Logger.Debug($"_freezeStartPoint          {_freezeStartPoint}");
-            Logger.Debug($"_settingMouseCursorSize    {_settingMouseCursorSize.Value}");
+            LogDebug($"_freezeCursor              {_freezeCursor}");
+            LogDebug($"updateFreezeStartPoint     {(_camDraggedChanged && _camDragged && !_inActionCamChanged) || (_inActionCamChanged && _inActionCam && !_camDraggedChanged)}");
+            LogDebug($"_freezeStartPoint          {_freezeStartPoint}");
+            LogDebug($"_settingMouseCursorSize    {_settingMouseCursorSize.Value}");
 
             if (_freezeCursor)
             {
@@ -434,9 +436,9 @@ namespace Manlaan.MouseCursor
                         _shouldClip ? clientRect.GetValueOrDefault().Height :
                             0
                 );
-                Logger.Debug($"   CurrentFreezeTime       {frozenFor}");
-                Logger.Debug($"   _freezeCursor           {_freezeCursor}");
-                Logger.Debug($"   WForms.Cursor.Clip      {WForms.Cursor.Clip}");
+                LogDebug($"   CurrentFreezeTime       {frozenFor}");
+                LogDebug($"   _freezeCursor           {_freezeCursor}");
+                LogDebug($"   WForms.Cursor.Clip      {WForms.Cursor.Clip}");
             }
         }
 
@@ -473,17 +475,17 @@ namespace Manlaan.MouseCursor
 
             if (shouldClipChanged || (_cursorVisChanged && _cursorVis))
             {
-                // Logger.Debug($"    Clip? {_shouldClip}");
+                LogDebug($"    Clip? {_shouldClip}");
                 WForms.Cursor.Clip = new System.Drawing.Rectangle(
                     _shouldClip ? clientToScr.GetValueOrDefault().X : 0,
                     _shouldClip ? clientToScr.GetValueOrDefault().Y : 0,
                     _shouldClip ? clientRect.GetValueOrDefault().Width : 0,
                     _shouldClip ? clientRect.GetValueOrDefault().Height : 0
                 );
-                // Logger.Debug($"    WForms.Cursor.Clip {WForms.Cursor.Clip}");
+                LogDebug($"    WForms.Cursor.Clip {WForms.Cursor.Clip}");
             }
 
-            // Logger.Debug($"End Setting cursor clip to {WForms.Cursor.Clip}");
+            LogDebug($"End Setting cursor clip to {WForms.Cursor.Clip}");
         }
 
         /// <inheritdoc />
@@ -583,6 +585,26 @@ namespace Manlaan.MouseCursor
                 return new Color(255, 255, 255);
             else
                 return new Color(color.Cloth.Rgb[0], color.Cloth.Rgb[1], color.Cloth.Rgb[2]);
+        }
+
+        private void LogDebug(string msg)
+        {
+            if (_settingMouseCursorLogDebug.Value) Logger.Debug(msg);
+        }
+
+        private void LogDebug(string msg, params object[] args)
+        {
+            if (_settingMouseCursorLogDebug.Value) Logger.Debug(msg, args);
+        }
+
+        private void LogDebug(Exception ex, string msg)
+        {
+            if (_settingMouseCursorLogDebug.Value) Logger.Debug(ex, msg);
+        }
+
+        private void LogDebug(Exception ex, string msg, params object[] args)
+        {
+            if (_settingMouseCursorLogDebug.Value) Logger.Debug(ex, msg, args);
         }
     }
 

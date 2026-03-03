@@ -1,5 +1,5 @@
 
-# MouseCuror
+# MouseCursor
 The MouseCuror module is a [Blish HUD](https://blishhud.com/) module which allows to display a custom image around the position of the mouse cursor to more easily keep track of it during hectic situations.
 
 # Download the Pathing Module
