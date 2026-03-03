@@ -296,6 +296,22 @@ namespace Manlaan.MouseCursor.Views
                 freezeCursorPeriodSlider.Visible = Module._settingMouseCursorFreezeCursor.Value;
             };
             prevContainer = freezeCursorPeriodSlider;
+
+            //
+            //
+            //                       Log Debug messages
+            //
+            //
+
+            ViewContainer _settingLogDebugContainer = new ViewContainer()
+            {
+                WidthSizingMode = SizingMode.Fill,
+                Location = new Point(10, prevContainer.Bottom + 5),
+                Parent = parentPanel
+            };
+            IView settingLogDebugView = SettingView.FromType(Module._settingMouseCursorLogDebug, _settingLogDebugContainer.Width);
+            _settingLogDebugContainer.Show(settingLogDebugView);
+            prevContainer = _settingLogDebugContainer;
         }
     }
 }
