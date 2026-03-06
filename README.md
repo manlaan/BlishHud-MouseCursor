@@ -1,11 +1,11 @@
 
 # MouseCursor
-The MouseCuror module is a [Blish HUD](https://blishhud.com/) module which allows to display a custom image around the position of the mouse cursor to more easily keep track of it during hectic situations.
+The MouseCursor module is a [Blish HUD](https://blishhud.com/) module which allows to display a custom image around the position of the mouse cursor to more easily keep track of it during hectic situations.
 
-# Download the Pathing Module
-You can downlaod the Pathing module from:
+# Download the MouseCursor Module
+You can downlaod the MouseCursor module from:
 
-- Our [Releases](https://github.com/manlaan/BlishHud-MouseCursor/releases) page here on GitHub.
+- Our [Releases](https://github.com/phileaphi/BlishHud-MouseCursor/releases) page here on GitHub.
 - The Blish HUD repository while in-game.
   
 In any case, you can review the Blish HUD [module install guide](https://blishhud.com/docs/user/installing-modules) for more details.
